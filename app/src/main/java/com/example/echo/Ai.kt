@@ -17,11 +17,10 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -75,11 +74,6 @@ class Ai : ComponentActivity() {
             WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
         )
 
-        WindowCompat.getInsetsController(window, window.decorView).apply {
-            isAppearanceLightStatusBars = true
-            isAppearanceLightNavigationBars = true
-        }
-
         setContent {
             MaterialTheme {
                 ChatApp()
@@ -112,6 +106,34 @@ fun ChatApp() {
     Box(Modifier.fillMaxSize()) {
         Background()
         ChatScreen(model)
+        TopRightRoundButton()
+    }
+}
+
+// ---------------- TOP RIGHT BUTTON (UI ONLY) ----------------
+@Composable
+fun TopRightRoundButton() {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(top = 36.dp, end = 20.dp),
+        contentAlignment = Alignment.TopEnd
+    ) {
+        IconButton(
+            onClick = {},
+            modifier = Modifier
+                .size(48.dp)
+                .clip(CircleShape)
+                .background(Color.White.copy(alpha = 45f))
+                .border(1.dp, Color.White.copy(alpha = 0.6f), CircleShape)
+        ) {
+            Icon(
+                painter = painterResource(id = R.drawable.set),
+                contentDescription = null,
+                tint = Color(0xCC000000) // Black
+            )
+
+        }
     }
 }
 
