@@ -110,9 +110,11 @@ fun ChatApp() {
     }
 }
 
-// ---------------- TOP RIGHT BUTTON (UI ONLY) ----------------
+// ---------------- TOP RIGHT BUTTON (NAVIGATION ADDED) ----------------
 @Composable
 fun TopRightRoundButton() {
+    val context = LocalContext.current
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -120,7 +122,11 @@ fun TopRightRoundButton() {
         contentAlignment = Alignment.TopEnd
     ) {
         IconButton(
-            onClick = {},
+            onClick = {
+                context.startActivity(
+                    android.content.Intent(context, Setting::class.java)
+                )
+            },
             modifier = Modifier
                 .size(48.dp)
                 .clip(CircleShape)
@@ -129,13 +135,13 @@ fun TopRightRoundButton() {
         ) {
             Icon(
                 painter = painterResource(id = R.drawable.set),
-                contentDescription = null,
-                tint = Color(0xCC000000) // Black
+                contentDescription = "Settings",
+                tint = Color(0xCC000000)
             )
-
         }
     }
 }
+
 
 // ---------------- CHAT SCREEN ----------------
 @Composable

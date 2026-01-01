@@ -58,21 +58,23 @@ dependencies {
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material3:material3")
 
-    // ✅ FIXED GOOGLE LOGIN FOR ANDROID 15 & 16
-    // Use version 1.5.0+ to support New Credential Manager features
+    // ✅ Google Sign-In (REQUIRED for GoogleSignIn imports)
+    implementation("com.google.android.gms:play-services-auth:21.0.0")
+
+    // ✅ Credential Manager (Android 14+ / 15 / 16)
     implementation("androidx.credentials:credentials:1.5.0-rc01")
     implementation("androidx.credentials:credentials-play-services-auth:1.5.0-rc01")
     implementation("com.google.android.libraries.identity.googleid:googleid:1.1.1")
 
-    // Firebase (Updated BOM)
+    // Firebase
     implementation(platform("com.google.firebase:firebase-bom:33.7.0"))
-    implementation("com.google.firebase:firebase-auth") // Removed -ktx as it's now internal to the main lib
+    implementation("com.google.firebase:firebase-auth")
 
-    // Networking / AI
+    // Networking / Coroutines
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0")
 
-    // ✅ GEMINI / GENERATIVE AI
+    // Gemini / Generative AI
     implementation("com.google.ai.client.generativeai:generativeai:0.9.0")
 
     // Testing
@@ -84,4 +86,6 @@ dependencies {
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
 }
+
+
 

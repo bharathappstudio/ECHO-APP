@@ -28,6 +28,11 @@
             android:name=".Ai"
             android:exported="false" />
 
+        <!-- SETTINGS SCREEN -->
+        <activity
+            android:name=".Setting"
+            android:exported="false" />
+
     </application>
 
 </manifest>

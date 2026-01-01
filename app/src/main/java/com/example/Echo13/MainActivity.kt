@@ -28,15 +28,18 @@ import androidx.compose.ui.unit.sp
 import androidx.core.view.WindowCompat
 import kotlinx.coroutines.launch
 import android.graphics.Color as SysColor
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.windowInsetsPadding
 
 class MainActivity : ComponentActivity() {
 
     private lateinit var prefs: SharedPreferences
+    private lateinit var googleAuthClient: GoogleAuthClient
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // ✅ SAME TYPE AS Ai (EDGE-TO-EDGE)
         WindowCompat.setDecorFitsSystemWindows(window, false)
         window.statusBarColor = SysColor.TRANSPARENT
         window.navigationBarColor = SysColor.TRANSPARENT
@@ -45,23 +48,20 @@ class MainActivity : ComponentActivity() {
             WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
         )
 
-        // ❗ ONLY DIFFERENCE FROM Ai
-        // Login screen is DARK → use WHITE icons
         WindowCompat.getInsetsController(window, window.decorView).apply {
-            isAppearanceLightStatusBars = false      // WHITE icons
-            isAppearanceLightNavigationBars = false // WHITE icons
+            isAppearanceLightStatusBars = false
+            isAppearanceLightNavigationBars = false
         }
 
         prefs = getSharedPreferences("echo_prefs", MODE_PRIVATE)
 
-        // ✅ AUTO LOGIN
         if (prefs.getBoolean("logged_in", false)) {
             startActivity(Intent(this, Ai::class.java))
             finish()
             return
         }
 
-        val googleAuthClient = GoogleAuthClient(this)
+        googleAuthClient = GoogleAuthClient(this)
 
         setContent {
             MaterialTheme {
@@ -76,6 +76,14 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == GoogleAuthClient.SIGN_IN_REQUEST_CODE) {
+            ResultHolder.callback?.invoke(data)
+            ResultHolder.callback = null
+        }
+    }
 }
 
 @Composable
@@ -86,7 +94,6 @@ fun BlackLoginUI(
     val scope = rememberCoroutineScope()
     var loading by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf("") }
-    var loginCompleted by remember { mutableStateOf(false) }
 
     Box(modifier = Modifier.fillMaxSize()) {
 
@@ -104,14 +111,13 @@ fun BlackLoginUI(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
 
-            Spacer(modifier = Modifier.height(36.dp))
             Spacer(modifier = Modifier.weight(1f))
 
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(topStart = 34.dp, topEnd = 34.dp))
-                    .background(Color(0xFFFFFFFF))
+                    .background(Color.White)
                     .padding(horizontal = 24.dp, vertical = 26.dp)
             ) {
 
@@ -129,37 +135,31 @@ fun BlackLoginUI(
                 if (loading) {
                     CircularProgressIndicator(
                         modifier = Modifier.align(Alignment.CenterHorizontally),
-                        color = Color(0xFF1C1C1C),
+                        color = Color.Black,
                         strokeWidth = 2.5.dp
                     )
                 } else {
+
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(56.dp)
                             .clip(RoundedCornerShape(100.dp))
-                            .background(Color(0xF21C1C1C))
+                            .background(Color(0xFF1C1C1C))
                             .clickable {
                                 loading = true
                                 error = ""
                                 scope.launch {
                                     val success = googleAuthClient.signIn()
                                     loading = false
-                                    if (success) {
-                                        loginCompleted = true
-                                        onLoginSuccess()
-                                    } else {
-                                        error = "Login cancelled"
-                                    }
+                                    if (success) onLoginSuccess()
+                                    else error = "Login cancelled"
                                 }
                             },
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = if (loginCompleted)
-                                "Welcome to Echo"
-                            else
-                                "Wellcom to Google",
+                            text = "Continue with Google",
                             fontSize = 16.sp,
                             fontWeight = FontWeight.SemiBold,
                             color = Color.White
