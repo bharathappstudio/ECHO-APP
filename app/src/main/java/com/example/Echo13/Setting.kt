@@ -13,6 +13,7 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -79,8 +80,9 @@ class Setting : ComponentActivity() {
                         prefs.edit().clear().apply()
                         startActivity(
                             Intent(this, MainActivity::class.java).apply {
-                                flags = Intent.FLAG_ACTIVITY_NEW_TASK or
-                                        Intent.FLAG_ACTIVITY_CLEAR_TASK
+                                flags =
+                                    Intent.FLAG_ACTIVITY_NEW_TASK or
+                                            Intent.FLAG_ACTIVITY_CLEAR_TASK
                             }
                         )
                         finish()
@@ -102,7 +104,12 @@ fun SettingUI(onLogout: () -> Unit) {
     val user = FirebaseAuth.getInstance().currentUser
     val name = user?.displayName ?: "Unknown User"
     val email = user?.email ?: ""
+
+    // ✅ FORCE 4K GOOGLE PROFILE IMAGE (NO UI CHANGE)
     val photoUrl = user?.photoUrl
+        ?.toString()
+        ?.replace("s96-c", "s4096-c")
+        ?.replace("s400-c", "s4096-c")
 
     Column(
         modifier = Modifier
@@ -138,7 +145,11 @@ fun SettingUI(onLogout: () -> Unit) {
                         .background(Color(0xFFB3E5FC)),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(name.first().toString(), fontSize = 22.sp, fontWeight = FontWeight.Bold)
+                    Text(
+                        name.first().toString(),
+                        fontSize = 22.sp,
+                        fontWeight = FontWeight.Bold
+                    )
                 }
             }
 
@@ -152,7 +163,7 @@ fun SettingUI(onLogout: () -> Unit) {
 
         Spacer(Modifier.height(20.dp))
 
-        /* -------- CAD LIGHT GREEN + ORANGE BUBBLES -------- */
+        /* -------- CAD CARD -------- */
 
         val transition = rememberInfiniteTransition(label = "bubbles")
 
@@ -201,10 +212,15 @@ fun SettingUI(onLogout: () -> Unit) {
                 .fillMaxWidth()
                 .height(110.dp)
                 .clip(RoundedCornerShape(20.dp))
-                .background(Color(0xFFC8E6C9)) // light green CAD
+                .border(
+                    width = 1.5.dp,
+                    color = Color(0xFFC8E6C9),
+                    shape = RoundedCornerShape(20.dp)
+                )
+                .background(Color(0xFFC8E6C9))
         ) {
 
-            val bubbleColor = Color(0xFF81C784).copy(alpha = 0.8f) // ORANGE bubbles
+            val bubbleColor = Color(0xFFA5D6A7).copy(alpha = 0.75f)
 
             Box(
                 Modifier
@@ -260,7 +276,11 @@ fun SettingUI(onLogout: () -> Unit) {
                     .fillMaxSize()
                     .padding(16.dp)
             ) {
-                Text("Get the best of Echo 🫐", fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
+                Text(
+                    "Get the best of Echo 🫐",
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 16.sp
+                )
                 Spacer(Modifier.height(4.dp))
                 Text(
                     "Higher limits, cloud storage, and Bharath apps with Echo built in Ai",
@@ -272,18 +292,29 @@ fun SettingUI(onLogout: () -> Unit) {
 
         Spacer(Modifier.height(24.dp))
 
-        SettingRow("Echo App as your Assistant", true) { openLink("https://example.com/assistant") }
+        SettingRow("Echo App as your Assistant", true) {
+            openLink("https://example.com/assistant")
+        }
         SettingRow("Account") { openLink("https://example.com/account") }
         SettingRow("Connectors") { openLink("https://example.com/connectors") }
         SettingRow("Manage memory") { openLink("https://example.com/memory") }
         SettingRow("User") { openLink("https://example.com/user") }
-        SettingRow("Give feedback") { openLink("mailto:jarvisvbharath11@gmail.com") }
-        SettingRow("Call to Developer") { openLink("tel:+917094589909") }
-        SettingRow("About") { openLink("https://gitlab.com/jarvisvbharath11") }
+        SettingRow("Give feedback") {
+            openLink("mailto:jarvisvbharath11@gmail.com")
+        }
+        SettingRow("Call to Developer") {
+            openLink("tel:+917094589909")
+        }
+        SettingRow("About") {
+            openLink("https://gitlab.com/jarvisvbharath11")
+        }
 
         Spacer(Modifier.height(24.dp))
 
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center
+        ) {
             TextButton(onClick = onLogout) { Text("Sign out") }
         }
     }
@@ -310,6 +341,10 @@ fun SettingRow(title: String, isNew: Boolean = false, onClick: () -> Unit) {
             }
             Spacer(Modifier.width(8.dp))
         }
-        Icon(Icons.Default.Done, contentDescription = null, tint = Color(0xFFFFCCBC))
+        Icon(
+            Icons.Default.Done,
+            contentDescription = null,
+            tint = Color(0xFFFFB74D)
+        )
     }
 }

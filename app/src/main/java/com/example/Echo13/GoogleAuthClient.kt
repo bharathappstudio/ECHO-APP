@@ -23,8 +23,8 @@ class GoogleAuthClient(private val activity: Activity) {
     init {
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
             .requestEmail()
+            .requestProfile() // ✅ IMPORTANT
             .requestIdToken(
-                // ✅ Firebase Web Client ID
                 "29905288838-cot6m28nklmq9833s2vb1s15j3q2b40o.apps.googleusercontent.com"
             )
             .build()
@@ -57,7 +57,14 @@ class GoogleAuthClient(private val activity: Activity) {
                             val userEmail = user?.email ?: "No Email"
                             val userUid = user?.uid ?: "No UID"
 
-                            // ✅ SEND EMAIL AFTER LOGIN
+                            // ✅ HIGH QUALITY GOOGLE PROFILE IMAGE (512x512)
+                            account.photoUrl
+                                ?.toString()
+                                ?.replace("s96-c", "s512-c")
+
+                            // OPTIONAL: use this URL in UI / save to Firestore
+                            // highQualityPhoto
+
                             CoroutineScope(Dispatchers.Main).launch {
                                 MailSender.sendLoginMail(
                                     userName = userName,
