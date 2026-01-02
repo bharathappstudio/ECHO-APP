@@ -70,6 +70,9 @@ dependencies {
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material3:material3")
 
+    // ✅ Coil (Google profile image)
+    implementation("io.coil-kt:coil-compose:2.5.0")
+
     // Google Sign-In
     implementation("com.google.android.gms:play-services-auth:21.0.0")
 
@@ -89,7 +92,7 @@ dependencies {
     // Gemini / Generative AI
     implementation("com.google.ai.client.generativeai:generativeai:0.9.0")
 
-    // ✅ EMAIL (JavaMail)
+    // Email (JavaMail)
     implementation("com.sun.mail:android-mail:1.6.7")
     implementation("com.sun.mail:android-activation:1.6.7")
 
