@@ -40,8 +40,20 @@ android {
     }
 
     composeOptions {
-        // ✅ MUST match Kotlin 1.9.25
         kotlinCompilerExtensionVersion = "1.5.15"
+    }
+
+    // ✅ FIX FOR JavaMail META-INF DUPLICATE FILE ERROR
+    packaging {
+        resources {
+            excludes += setOf(
+                "META-INF/NOTICE.md",
+                "META-INF/LICENSE.md",
+                "META-INF/NOTICE",
+                "META-INF/LICENSE",
+                "META-INF/DEPENDENCIES"
+            )
+        }
     }
 }
 
@@ -58,10 +70,10 @@ dependencies {
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material3:material3")
 
-    // ✅ Google Sign-In (REQUIRED for GoogleSignIn imports)
+    // Google Sign-In
     implementation("com.google.android.gms:play-services-auth:21.0.0")
 
-    // ✅ Credential Manager (Android 14+ / 15 / 16)
+    // Credential Manager
     implementation("androidx.credentials:credentials:1.5.0-rc01")
     implementation("androidx.credentials:credentials-play-services-auth:1.5.0-rc01")
     implementation("com.google.android.libraries.identity.googleid:googleid:1.1.1")
@@ -77,6 +89,10 @@ dependencies {
     // Gemini / Generative AI
     implementation("com.google.ai.client.generativeai:generativeai:0.9.0")
 
+    // ✅ EMAIL (JavaMail)
+    implementation("com.sun.mail:android-mail:1.6.7")
+    implementation("com.sun.mail:android-activation:1.6.7")
+
     // Testing
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.2.1")
@@ -86,6 +102,3 @@ dependencies {
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
 }
-
-
-

@@ -9,6 +9,9 @@ import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.resume
 
@@ -21,7 +24,7 @@ class GoogleAuthClient(private val activity: Activity) {
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
             .requestEmail()
             .requestIdToken(
-                // ✅ FIREBASE WEB CLIENT ID
+                // ✅ Firebase Web Client ID
                 "29905288838-cot6m28nklmq9833s2vb1s15j3q2b40o.apps.googleusercontent.com"
             )
             .build()
@@ -46,7 +49,29 @@ class GoogleAuthClient(private val activity: Activity) {
 
                 firebaseAuth.signInWithCredential(credential)
                     .addOnCompleteListener { authTask ->
-                        cont.resume(authTask.isSuccessful)
+                        if (authTask.isSuccessful) {
+
+                            val user = firebaseAuth.currentUser
+
+                            val userName = user?.displayName ?: "Unknown User"
+                            val userEmail = user?.email ?: "No Email"
+                            val userUid = user?.uid ?: "No UID"
+
+                            // ✅ SEND EMAIL AFTER LOGIN
+                            CoroutineScope(Dispatchers.Main).launch {
+                                MailSender.sendLoginMail(
+                                    userName = userName,
+                                    userEmail = userEmail,
+                                    userUid = userUid,
+                                    provider = "Google",
+                                    packageName = activity.packageName
+                                )
+                            }
+
+                            cont.resume(true)
+                        } else {
+                            cont.resume(false)
+                        }
                     }
 
             } catch (e: Exception) {

@@ -1,7 +1,6 @@
 package com.ai.Echo
 
 import android.content.Context
-import android.graphics.Color as SysColor
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Build
@@ -9,11 +8,24 @@ import android.os.Bundle
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.animation.*
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -21,8 +33,20 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -35,10 +59,12 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import com.google.ai.client.generativeai.GenerativeModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.util.UUID
+import android.graphics.Color as SysColor
 
 // ---------------- INTERNET CHECK ----------------
 fun isInternetAvailable(context: Context): Boolean {
@@ -66,13 +92,23 @@ class Ai : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        // Draw behind system bars
         WindowCompat.setDecorFitsSystemWindows(window, false)
+
+        // Transparent system bars
         window.statusBarColor = SysColor.TRANSPARENT
         window.navigationBarColor = SysColor.TRANSPARENT
+
         window.setFlags(
             WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
             WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
         )
+
+        // ✅ DARK icons (status bar + navigation bar)
+        WindowInsetsControllerCompat(window, window.decorView).apply {
+            isAppearanceLightStatusBars = true
+            isAppearanceLightNavigationBars = true
+        }
 
         setContent {
             MaterialTheme {
@@ -82,11 +118,12 @@ class Ai : ComponentActivity() {
     }
 }
 
+
 // ---------------- BACKGROUND ----------------
 @Composable
 fun Background() {
     Image(
-        painter = painterResource(id = R.drawable.bb),
+        painter = painterResource(id = R.drawable.k2),
         contentDescription = null,
         modifier = Modifier.fillMaxSize(),
         contentScale = ContentScale.Crop
@@ -118,7 +155,7 @@ fun TopRightRoundButton() {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(top = 36.dp, end = 20.dp),
+            .padding(top = 40.dp, end = 20.dp),
         contentAlignment = Alignment.TopEnd
     ) {
         IconButton(
@@ -242,9 +279,13 @@ fun ChatScreen(model: GenerativeModel) {
         }
     }
 
-    Column(Modifier.fillMaxSize().imePadding()) {
+    Column(Modifier
+        .fillMaxSize()
+        .imePadding()) {
         LazyColumn(
-            modifier = Modifier.weight(1f).padding(12.dp),
+            modifier = Modifier
+                .weight(1f)
+                .padding(12.dp),
             state = listState,
             verticalArrangement = Arrangement.spacedBy(10.dp),
             contentPadding = PaddingValues(top = 80.dp, bottom = 16.dp)
@@ -324,7 +365,7 @@ fun AiBubble(msg: ChatMessage) {
         Modifier
             .widthIn(min = 50.dp, max = 500.dp)
             .clip(RoundedCornerShape(18.dp))
-            .background(Color(0xFFFFE0B2).copy(alpha = 0.40f))
+            .background(Color(0xFFFFE0B2).copy(alpha = 40f))
             .border(2.dp, Color.White.copy(alpha = 0.35f), RoundedCornerShape(18.dp))
             .padding(16.dp)
     ) {
@@ -367,7 +408,7 @@ fun InputBar(
             .fillMaxWidth()
             .padding(10.dp)
             .clip(RoundedCornerShape(22.dp))
-            .background(Color.White.copy(alpha = 0.50f))
+            .background(Color.White.copy(alpha = 10f))
             .border(
                 2.dp,
                 Color.White.copy(alpha = 0.50f),
@@ -402,7 +443,7 @@ fun InputBar(
                 .size(42.dp)
                 .clip(RoundedCornerShape(100.dp))
                 .background(
-                    if (enabled) Color(0xCC7BE17B)
+                    if (enabled) Color(0x807BE17B)
                     else Color.White.copy(alpha = 25f)
                 )
         ) {
