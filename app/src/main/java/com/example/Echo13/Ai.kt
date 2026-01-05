@@ -13,19 +13,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -33,20 +21,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -63,6 +39,8 @@ import androidx.core.view.WindowInsetsControllerCompat
 import com.google.ai.client.generativeai.GenerativeModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import org.json.JSONArray
+import org.json.JSONObject
 import java.util.UUID
 import android.graphics.Color as SysColor
 
@@ -87,24 +65,58 @@ data class ChatMessage(
     val isThinking: Boolean = false
 )
 
+// ---------------- LOCAL STORAGE ----------------
+private const val PREFS = "echo_chat"
+private const val KEY_CHAT = "chat_data"
+
+fun saveChats(context: Context, list: List<ChatMessage>) {
+    val arr = JSONArray()
+    list.forEach {
+        val o = JSONObject()
+        o.put("id", it.id)
+        o.put("text", it.text)
+        o.put("isUser", it.isUser)
+        arr.put(o)
+    }
+    context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        .edit()
+        .putString(KEY_CHAT, arr.toString())
+        .apply()
+}
+
+fun loadChats(context: Context): List<ChatMessage> {
+    val json = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        .getString(KEY_CHAT, null) ?: return emptyList()
+
+    val arr = JSONArray(json)
+    val list = mutableListOf<ChatMessage>()
+    for (i in 0 until arr.length()) {
+        val o = arr.getJSONObject(i)
+        list.add(
+            ChatMessage(
+                id = o.getString("id"),
+                text = o.getString("text"),
+                isUser = o.getBoolean("isUser"),
+                animated = false
+            )
+        )
+    }
+    return list
+}
+
 // ---------------- ACTIVITY ----------------
 class Ai : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Draw behind system bars
         WindowCompat.setDecorFitsSystemWindows(window, false)
-
-        // Transparent system bars
         window.statusBarColor = SysColor.TRANSPARENT
         window.navigationBarColor = SysColor.TRANSPARENT
-
         window.setFlags(
             WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
             WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
         )
 
-        // ✅ DARK icons (status bar + navigation bar)
         WindowInsetsControllerCompat(window, window.decorView).apply {
             isAppearanceLightStatusBars = true
             isAppearanceLightNavigationBars = true
@@ -117,7 +129,6 @@ class Ai : ComponentActivity() {
         }
     }
 }
-
 
 // ---------------- BACKGROUND ----------------
 @Composable
@@ -147,11 +158,10 @@ fun ChatApp() {
     }
 }
 
-// ---------------- TOP RIGHT BUTTON (NAVIGATION ADDED) ----------------
+// ---------------- TOP RIGHT BUTTON ----------------
 @Composable
 fun TopRightRoundButton() {
     val context = LocalContext.current
-
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -167,18 +177,17 @@ fun TopRightRoundButton() {
             modifier = Modifier
                 .size(48.dp)
                 .clip(CircleShape)
-                .background(Color.White.copy(alpha = 45f))
+                .background(Color.White.copy(alpha = 0.45f))
                 .border(1.dp, Color.White.copy(alpha = 0.6f), CircleShape)
         ) {
             Icon(
                 painter = painterResource(id = R.drawable.set),
                 contentDescription = "Settings",
-                tint = Color(0xCC000000)
+                tint = Color.Black
             )
         }
     }
 }
-
 
 // ---------------- CHAT SCREEN ----------------
 @Composable
@@ -189,13 +198,18 @@ fun ChatScreen(model: GenerativeModel) {
     val listState = rememberLazyListState()
 
     val messages = remember {
-        mutableStateListOf(
-            ChatMessage(
-                text = "Hi, I am Echo 👋",
-                isUser = false,
-                animated = true
-            )
-        )
+        mutableStateListOf<ChatMessage>().apply {
+            addAll(loadChats(context))
+            if (isEmpty()) {
+                add(
+                    ChatMessage(
+                        text = "Hi, I am Echo 👋",
+                        isUser = false,
+                        animated = true
+                    )
+                )
+            }
+        }
     }
 
     var input by remember { mutableStateOf("") }
@@ -203,6 +217,7 @@ fun ChatScreen(model: GenerativeModel) {
 
     LaunchedEffect(messages.size) {
         listState.animateScrollToItem(messages.lastIndex)
+        saveChats(context, messages.filter { !it.isThinking })
     }
 
     fun send() {
@@ -223,18 +238,10 @@ fun ChatScreen(model: GenerativeModel) {
         input = ""
         keyboard?.hide()
 
-        messages.add(
-            ChatMessage(
-                text = question,
-                isUser = true,
-                animated = true
-            )
-        )
-
+        messages.add(ChatMessage(text = question, isUser = true, animated = true))
         loading = true
-        val thinkingId = UUID.randomUUID().toString()
 
-        // thinking text (animated)
+        val thinkingId = UUID.randomUUID().toString()
         messages.add(
             ChatMessage(
                 id = thinkingId,
@@ -246,15 +253,9 @@ fun ChatScreen(model: GenerativeModel) {
 
         scope.launch {
             try {
-                delay(900)
-
-                val response =
-                    model.generateContent(question).text ?: "No response"
-
+                delay(800)
+                val response = model.generateContent(question).text ?: "No response"
                 messages.removeAll { it.id == thinkingId }
-
-                delay(300)
-
                 messages.add(
                     ChatMessage(
                         text = response,
@@ -262,13 +263,11 @@ fun ChatScreen(model: GenerativeModel) {
                         animated = true
                     )
                 )
-
             } catch (e: Exception) {
                 messages.removeAll { it.id == thinkingId }
-
                 messages.add(
                     ChatMessage(
-                        text = "Error: ${e.message ?: "Unknown error"}",
+                        text = "Error: ${e.message}",
                         isUser = false,
                         animated = true
                     )
@@ -279,9 +278,11 @@ fun ChatScreen(model: GenerativeModel) {
         }
     }
 
-    Column(Modifier
-        .fillMaxSize()
-        .imePadding()) {
+    Column(
+        Modifier
+            .fillMaxSize()
+            .imePadding()
+    ) {
         LazyColumn(
             modifier = Modifier
                 .weight(1f)
@@ -306,10 +307,7 @@ fun ChatScreen(model: GenerativeModel) {
 // ---------------- MESSAGE ----------------
 @Composable
 fun AnimatedMessage(msg: ChatMessage) {
-    AnimatedVisibility(
-        visible = true,
-        enter = fadeIn()
-    ) {
+    AnimatedVisibility(visible = true, enter = fadeIn()) {
         when {
             msg.isThinking -> ThinkingAnimatedText(msg.text)
             msg.isUser -> UserBubble(msg.text)
@@ -318,63 +316,56 @@ fun AnimatedMessage(msg: ChatMessage) {
     }
 }
 
-// ---------------- THINKING ANIMATION (TEXT ONLY) ----------------
+// ---------------- THINKING ----------------
 @Composable
 fun ThinkingAnimatedText(baseText: String) {
     var dots by remember { mutableStateOf("") }
-
     LaunchedEffect(Unit) {
         while (true) {
             dots = ""
-            delay(400)
+            delay(300)
             dots = "."
-            delay(400)
+            delay(300)
             dots = ".."
-            delay(400)
+            delay(300)
             dots = "..."
-            delay(400)
+            delay(300)
         }
     }
-
     Text(
         text = "$baseText$dots",
         fontSize = 14.sp,
         color = Color.Black.copy(alpha = 0.55f),
-        modifier = Modifier.padding(start = 12.dp, bottom = 6.dp)
+        modifier = Modifier.padding(start = 12.dp)
     )
 }
 
-// ---------------- AI BUBBLE ----------------
+// ---------------- AI BUBBLE (ANIMATION ONE TIME) ----------------
 @Composable
 fun AiBubble(msg: ChatMessage) {
-    var shown by remember(msg.text) { mutableStateOf("") }
+    var shown by remember { mutableStateOf(msg.text) }
+    var animatedDone by remember { mutableStateOf(!msg.animated) }
 
-    LaunchedEffect(msg.text) {
-        shown = ""
-        if (msg.animated) {
+    LaunchedEffect(msg.id) {
+        if (!animatedDone) {
+            shown = ""
             for (c in msg.text) {
                 shown += c
                 delay(14)
             }
-        } else {
-            shown = msg.text
+            animatedDone = true
         }
     }
 
     Box(
         Modifier
-            .widthIn(min = 50.dp, max = 500.dp)
+            .widthIn(50.dp, 500.dp)
             .clip(RoundedCornerShape(18.dp))
-            .background(Color(0xFFFFEDB3).copy(alpha = 40f))
-            .border(2.dp, Color.White.copy(alpha = 35f), RoundedCornerShape(18.dp))
+            .background(Color(0xFFFFEDB3).copy(alpha = 0.4f))
+            .border(2.dp, Color.White.copy(alpha = 0.35f), RoundedCornerShape(18.dp))
             .padding(16.dp)
     ) {
-        Text(
-            text = shown,
-            fontSize = 16.sp,
-            color = Color(0xFF111111),
-            lineHeight = 22.sp
-        )
+        Text(shown, fontSize = 16.sp, color = Color(0xFF111111), lineHeight = 22.sp)
     }
 }
 
@@ -408,12 +399,8 @@ fun InputBar(
             .fillMaxWidth()
             .padding(10.dp)
             .clip(RoundedCornerShape(22.dp))
-            .background(Color.White.copy(alpha = 5f))
-            .border(
-                2.dp,
-                Color.White.copy(alpha = 100f),
-                RoundedCornerShape(22.dp)
-            )
+            .background(Color.White.copy(alpha = 0.40f))
+            .border(2.dp, Color.White.copy(alpha = 1f), RoundedCornerShape(22.dp))
             .padding(horizontal = 10.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -441,19 +428,18 @@ fun InputBar(
             enabled = enabled,
             modifier = Modifier
                 .size(42.dp)
-                .clip(RoundedCornerShape(100.dp))
+                .clip(CircleShape)
                 .background(
                     if (enabled) Color(0x807BE17B)
-                    else Color.White.copy(alpha = 25f)
+                    else Color.White.copy(alpha = 0.25f)
                 )
         ) {
             Icon(
-                painter = painterResource(id = R.drawable.send), // send.xml
+                painter = painterResource(id = R.drawable.send),
                 contentDescription = "Send",
-                tint = if (enabled) Color.Black else Color.Black.copy(alpha = 40f),
+                tint = if (enabled) Color.Black else Color.Black.copy(alpha = 0.4f),
                 modifier = Modifier.size(24.dp)
             )
-
         }
     }
 }
