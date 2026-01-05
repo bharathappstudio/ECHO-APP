@@ -136,7 +136,7 @@ fun ChatApp() {
     val model = remember {
         GenerativeModel(
             modelName = "gemini-3-flash-preview",
-            apiKey = "AIzaSyB4OUalMnGn7tJA8UNBWHlWu1X4ITSc8_U"
+            apiKey = "AIzaSyCHW7Gcae4-RU1Upyq5kTnnW_1RH_OQiQA"
         )
     }
 
@@ -365,8 +365,8 @@ fun AiBubble(msg: ChatMessage) {
         Modifier
             .widthIn(min = 50.dp, max = 500.dp)
             .clip(RoundedCornerShape(18.dp))
-            .background(Color(0xFFFFE0B2).copy(alpha = 40f))
-            .border(2.dp, Color.White.copy(alpha = 0.35f), RoundedCornerShape(18.dp))
+            .background(Color(0xFFFFEDB3).copy(alpha = 40f))
+            .border(2.dp, Color.White.copy(alpha = 35f), RoundedCornerShape(18.dp))
             .padding(16.dp)
     ) {
         Text(

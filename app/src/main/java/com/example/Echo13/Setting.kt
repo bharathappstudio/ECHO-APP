@@ -159,6 +159,7 @@ fun SettingUI(onLogout: () -> Unit) {
             label = ""
         )
 
+        // ✅ ONLY CHANGE: clickable added (NO UI change)
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -166,6 +167,11 @@ fun SettingUI(onLogout: () -> Unit) {
                 .clip(RoundedCornerShape(20.dp))
                 .border(1.5.dp, Color.White, RoundedCornerShape(20.dp))
                 .background(Color(0xFFFFECB3))
+                .clickable {
+                    context.startActivity(
+                        Intent(context, EchoWeb::class.java)
+                    )
+                }
         ) {
 
             val bubbleColor = Color(0xFFFFE082).copy(alpha = 0.75f)
@@ -202,7 +208,7 @@ fun SettingUI(onLogout: () -> Unit) {
             context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("tel:+917094589909")))
         }
         SettingRow("About") {
-            context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://gitlab.com/jarvisvbharath11")))
+            context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/bharathappstudio")))
         }
 
         Spacer(Modifier.height(24.dp))

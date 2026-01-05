@@ -53,6 +53,11 @@
             android:name=".PermissionsActivity"
             android:exported="false" />
 
+        <!-- ECHO WEB (WebView UI) -->
+        <activity
+            android:name=".EchoWeb"
+            android:exported="false" />
+
     </application>
 
 </manifest>
