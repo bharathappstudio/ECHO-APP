@@ -1,10 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="com.ai.Echo">
 
-    <!-- REQUIRED PERMISSIONS -->
+    <!-- ================= REQUIRED PERMISSIONS ================= -->
+
+    <!-- INTERNET -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <!-- LOCATION -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+
+    <!-- NOTIFICATIONS (Android 13 / API 33+) -->
+    <uses-permission
+        android:name="android.permission.POST_NOTIFICATIONS"
+        tools:targetApi="33" />
+
+    <!-- ================= APPLICATION ================= -->
 
     <application
         android:allowBackup="true"
@@ -14,7 +28,7 @@
         android:supportsRtl="true"
         android:theme="@android:style/Theme.DeviceDefault.Light.NoActionBar">
 
-        <!-- LOGIN / LAUNCHER SCREEN -->
+        <!-- LAUNCHER -->
         <activity
             android:name=".MainActivity"
             android:exported="true">
@@ -24,17 +38,17 @@
             </intent-filter>
         </activity>
 
-        <!-- AI CHAT SCREEN -->
+        <!-- AI CHAT -->
         <activity
             android:name=".Ai"
             android:exported="false" />
 
-        <!-- SETTINGS SCREEN -->
+        <!-- SETTINGS -->
         <activity
             android:name=".Setting"
             android:exported="false" />
 
-        <!-- PERMISSIONS SCREEN (ADDED) -->
+        <!-- PERMISSIONS -->
         <activity
             android:name=".PermissionsActivity"
             android:exported="false" />
