@@ -408,10 +408,10 @@ fun InputBar(
             .fillMaxWidth()
             .padding(10.dp)
             .clip(RoundedCornerShape(22.dp))
-            .background(Color.White.copy(alpha = 10f))
+            .background(Color.White.copy(alpha = 5f))
             .border(
                 2.dp,
-                Color.White.copy(alpha = 0.50f),
+                Color.White.copy(alpha = 100f),
                 RoundedCornerShape(22.dp)
             )
             .padding(horizontal = 10.dp, vertical = 12.dp),
