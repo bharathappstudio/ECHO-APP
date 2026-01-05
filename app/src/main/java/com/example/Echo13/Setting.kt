@@ -1,3 +1,4 @@
+// ======================= Setting.kt =======================
 package com.ai.Echo
 
 import android.content.Intent
@@ -15,32 +16,14 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.systemBars
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Done
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -97,15 +80,11 @@ class Setting : ComponentActivity() {
 fun SettingUI(onLogout: () -> Unit) {
 
     val context = LocalContext.current
-    fun openLink(url: String) {
-        context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
-    }
 
     val user = FirebaseAuth.getInstance().currentUser
     val name = user?.displayName ?: "Unknown User"
     val email = user?.email ?: ""
 
-    // ✅ FORCE 4K GOOGLE PROFILE IMAGE (NO UI CHANGE)
     val photoUrl = user?.photoUrl
         ?.toString()
         ?.replace("s96-c", "s4096-c")
@@ -133,9 +112,7 @@ fun SettingUI(onLogout: () -> Unit) {
                 AsyncImage(
                     model = photoUrl,
                     contentDescription = null,
-                    modifier = Modifier
-                        .size(56.dp)
-                        .clip(CircleShape)
+                    modifier = Modifier.size(56.dp).clip(CircleShape)
                 )
             } else {
                 Box(
@@ -145,11 +122,7 @@ fun SettingUI(onLogout: () -> Unit) {
                         .background(Color(0xFFFFECB3)),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(
-                        name.first().toString(),
-                        fontSize = 22.sp,
-                        fontWeight = FontWeight.Bold
-                    )
+                    Text(name.first().toString(), fontSize = 22.sp, fontWeight = FontWeight.Bold)
                 }
             }
 
@@ -163,47 +136,26 @@ fun SettingUI(onLogout: () -> Unit) {
 
         Spacer(Modifier.height(20.dp))
 
-        /* -------- CAD CARD -------- */
-
         val transition = rememberInfiniteTransition(label = "bubbles")
 
         val up1 by transition.animateFloat(
-            initialValue = -120f,
-            targetValue = 120f,
-            animationSpec = infiniteRepeatable(
-                tween(7000, easing = FastOutSlowInEasing),
-                RepeatMode.Reverse
-            ),
+            -120f, 120f,
+            infiniteRepeatable(tween(7000, easing = FastOutSlowInEasing), RepeatMode.Reverse),
             label = ""
         )
-
         val up2 by transition.animateFloat(
-            initialValue = 120f,
-            targetValue = -120f,
-            animationSpec = infiniteRepeatable(
-                tween(9000, easing = FastOutSlowInEasing),
-                RepeatMode.Reverse
-            ),
+            120f, -120f,
+            infiniteRepeatable(tween(9000, easing = FastOutSlowInEasing), RepeatMode.Reverse),
             label = ""
         )
-
         val side1 by transition.animateFloat(
-            initialValue = -50f,
-            targetValue = 50f,
-            animationSpec = infiniteRepeatable(
-                tween(8000, easing = FastOutSlowInEasing),
-                RepeatMode.Reverse
-            ),
+            -50f, 50f,
+            infiniteRepeatable(tween(8000, easing = FastOutSlowInEasing), RepeatMode.Reverse),
             label = ""
         )
-
         val side2 by transition.animateFloat(
-            initialValue = 50f,
-            targetValue = -50f,
-            animationSpec = infiniteRepeatable(
-                tween(10000, easing = FastOutSlowInEasing),
-                RepeatMode.Reverse
-            ),
+            50f, -50f,
+            infiniteRepeatable(tween(10000, easing = FastOutSlowInEasing), RepeatMode.Reverse),
             label = ""
         )
 
@@ -212,75 +164,19 @@ fun SettingUI(onLogout: () -> Unit) {
                 .fillMaxWidth()
                 .height(110.dp)
                 .clip(RoundedCornerShape(20.dp))
-                .border(
-                    width = 1.5.dp,
-                    color = Color(0xFFFFFFFF),
-                    shape = RoundedCornerShape(20.dp)
-                )
+                .border(1.5.dp, Color.White, RoundedCornerShape(20.dp))
                 .background(Color(0xFFFFECB3))
         ) {
 
             val bubbleColor = Color(0xFFFFE082).copy(alpha = 0.75f)
 
-            Box(
-                Modifier
-                    .size(22.dp)
-                    .offset(x = 30.dp + side1.dp, y = up1.dp)
-                    .background(bubbleColor, CircleShape)
-            )
-            Box(
-                Modifier
-                    .size(18.dp)
-                    .offset(x = 70.dp, y = up2.dp)
-                    .background(bubbleColor, CircleShape)
-            )
-            Box(
-                Modifier
-                    .size(14.dp)
-                    .offset(x = 120.dp + side2.dp, y = up1.dp + 30.dp)
-                    .background(bubbleColor, CircleShape)
-            )
-            Box(
-                Modifier
-                    .size(26.dp)
-                    .offset(x = 160.dp, y = up2.dp + 50.dp)
-                    .background(bubbleColor, CircleShape)
-            )
-            Box(
-                Modifier
-                    .size(12.dp)
-                    .offset(x = 200.dp + side1.dp, y = up1.dp + 70.dp)
-                    .background(bubbleColor, CircleShape)
-            )
-            Box(
-                Modifier
-                    .size(20.dp)
-                    .offset(x = 240.dp, y = up2.dp + 20.dp)
-                    .background(bubbleColor, CircleShape)
-            )
-            Box(
-                Modifier
-                    .size(16.dp)
-                    .offset(x = 280.dp + side2.dp, y = up1.dp + 40.dp)
-                    .background(bubbleColor, CircleShape)
-            )
-            Box(
-                Modifier
-                    .size(10.dp)
-                    .offset(x = 320.dp, y = up2.dp + 80.dp)
-                    .background(bubbleColor, CircleShape)
-            )
+            Box(Modifier.size(22.dp).offset(30.dp + side1.dp, up1.dp).background(bubbleColor, CircleShape))
+            Box(Modifier.size(18.dp).offset(70.dp, up2.dp).background(bubbleColor, CircleShape))
+            Box(Modifier.size(14.dp).offset(120.dp + side2.dp, up1.dp + 30.dp).background(bubbleColor, CircleShape))
+            Box(Modifier.size(26.dp).offset(160.dp, up2.dp + 50.dp).background(bubbleColor, CircleShape))
 
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp)
-            ) {
-                Text(
-                    "Get the best of Echo 🫐",
-                    fontWeight = FontWeight.SemiBold,
-                    fontSize = 16.sp
-                )
+            Column(Modifier.fillMaxSize().padding(16.dp)) {
+                Text("Get the best of Echo 🫐", fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
                 Spacer(Modifier.height(4.dp))
                 Text(
                     "Higher limits, cloud storage, and Bharath apps with Echo built in Ai",
@@ -292,29 +188,26 @@ fun SettingUI(onLogout: () -> Unit) {
 
         Spacer(Modifier.height(24.dp))
 
-        SettingRow("Echo App as your Assistant", true) {
-            openLink("https://example.com/assistant")
+        SettingRow("Echo App as your Assistant", true) {}
+        SettingRow("Permissions") {
+            context.startActivity(Intent(context, PermissionsActivity::class.java))
         }
-        SettingRow("Account") { openLink("https://example.com/account") }
-        SettingRow("Connectors") { openLink("https://example.com/connectors") }
-        SettingRow("Manage memory") { openLink("https://example.com/memory") }
-        SettingRow("User") { openLink("https://example.com/user") }
+        SettingRow("Connectors") {}
+        SettingRow("Manage memory") {}
+        SettingRow("User") {}
         SettingRow("Give feedback") {
-            openLink("mailto:jarvisvbharath11@gmail.com")
+            context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("mailto:jarvisvbharath11@gmail.com")))
         }
         SettingRow("Call to Developer") {
-            openLink("tel:+917094589909")
+            context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("tel:+917094589909")))
         }
         SettingRow("About") {
-            openLink("https://gitlab.com/jarvisvbharath11")
+            context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://gitlab.com/jarvisvbharath11")))
         }
 
         Spacer(Modifier.height(24.dp))
 
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center
-        ) {
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
             TextButton(onClick = onLogout) { Text("Sign out") }
         }
     }
@@ -341,10 +234,6 @@ fun SettingRow(title: String, isNew: Boolean = false, onClick: () -> Unit) {
             }
             Spacer(Modifier.width(8.dp))
         }
-        Icon(
-            Icons.Default.Done,
-            contentDescription = null,
-            tint = Color(0xFFFFB74D)
-        )
+        Icon(Icons.Default.Done, contentDescription = null, tint = Color(0xFFFFB74D))
     }
 }
