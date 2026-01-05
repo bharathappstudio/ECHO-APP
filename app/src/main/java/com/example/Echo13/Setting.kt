@@ -114,7 +114,7 @@ fun SettingUI(onLogout: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFE8F5E9))
+            .background(Color(0xFFFFF8E1))
             .windowInsetsPadding(WindowInsets.systemBars)
             .padding(16.dp)
     ) {
@@ -142,7 +142,7 @@ fun SettingUI(onLogout: () -> Unit) {
                     modifier = Modifier
                         .size(56.dp)
                         .clip(CircleShape)
-                        .background(Color(0xFFB3E5FC)),
+                        .background(Color(0xFFFFECB3)),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
@@ -214,13 +214,13 @@ fun SettingUI(onLogout: () -> Unit) {
                 .clip(RoundedCornerShape(20.dp))
                 .border(
                     width = 1.5.dp,
-                    color = Color(0xFFC8E6C9),
+                    color = Color(0xFFFFFFFF),
                     shape = RoundedCornerShape(20.dp)
                 )
-                .background(Color(0xFFC8E6C9))
+                .background(Color(0xFFFFECB3))
         ) {
 
-            val bubbleColor = Color(0xFFA5D6A7).copy(alpha = 0.75f)
+            val bubbleColor = Color(0xFFFFE082).copy(alpha = 0.75f)
 
             Box(
                 Modifier
