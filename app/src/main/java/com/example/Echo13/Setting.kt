@@ -21,7 +21,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Done
+import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -119,7 +119,7 @@ fun SettingUI(onLogout: () -> Unit) {
                     modifier = Modifier
                         .size(56.dp)
                         .clip(CircleShape)
-                        .background(Color(0xFFFFECB3)),
+                        .background(Color(0xFFF9FBE7)),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(name.first().toString(), fontSize = 22.sp, fontWeight = FontWeight.Bold)
@@ -165,7 +165,7 @@ fun SettingUI(onLogout: () -> Unit) {
                 .fillMaxWidth()
                 .height(110.dp)
                 .clip(RoundedCornerShape(20.dp))
-                .border(1.5.dp, Color.White, RoundedCornerShape(20.dp))
+                .border(2.dp, Color.White, RoundedCornerShape(20.dp))
                 .background(Color(0xFFFFECB3))
                 .clickable {
                     context.startActivity(
@@ -174,7 +174,7 @@ fun SettingUI(onLogout: () -> Unit) {
                 }
         ) {
 
-            val bubbleColor = Color(0xFFFFE082).copy(alpha = 0.75f)
+            val bubbleColor = Color(0xFFFAFAF7).copy(alpha = 0.75f)
 
             Box(Modifier.size(22.dp).offset(30.dp + side1.dp, up1.dp).background(bubbleColor, CircleShape))
             Box(Modifier.size(18.dp).offset(70.dp, up2.dp).background(bubbleColor, CircleShape))
@@ -187,7 +187,7 @@ fun SettingUI(onLogout: () -> Unit) {
                 Text(
                     "Higher limits, cloud storage, and Bharath apps with Echo built in Ai",
                     fontSize = 13.sp,
-                    color = Color(0xFF4E4E4E)
+                    color = Color(0xCC4E4E4E)
                 )
             }
         }
@@ -233,13 +233,13 @@ fun SettingRow(title: String, isNew: Boolean = false, onClick: () -> Unit) {
             Box(
                 modifier = Modifier
                     .clip(RoundedCornerShape(8.dp))
-                    .background(Color(0xFFF3D7BD))
+                    .background(Color(0xCCA5D6A7))
                     .padding(horizontal = 8.dp, vertical = 4.dp)
             ) {
                 Text("NEW", fontSize = 11.sp)
             }
             Spacer(Modifier.width(8.dp))
         }
-        Icon(Icons.Default.Done, contentDescription = null, tint = Color(0xFFFFB74D))
+        Icon(Icons.Default.KeyboardArrowRight, contentDescription = null, tint = Color(0x80171616))
     }
 }

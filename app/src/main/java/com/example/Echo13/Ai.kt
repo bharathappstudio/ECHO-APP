@@ -154,9 +154,13 @@ fun ChatApp() {
     Box(Modifier.fillMaxSize()) {
         Background()
         ChatScreen(model)
+
+        // ✅ BOTH BUTTONS
+        TopLeftRoundButton()
         TopRightRoundButton()
     }
 }
+
 
 // ---------------- TOP RIGHT BUTTON ----------------
 @Composable
@@ -188,6 +192,40 @@ fun TopRightRoundButton() {
         }
     }
 }
+
+// ---------------- TOP LEFT BUTTON ----------------
+@Composable
+fun TopLeftRoundButton() {
+    val context = LocalContext.current
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(top = 40.dp, start = 20.dp),
+        contentAlignment = Alignment.TopStart
+    ) {
+        IconButton(
+            onClick = {
+                // change activity if needed
+                context.startActivity(
+                    android.content.Intent(context, Setting::class.java)
+                )
+            },
+            modifier = Modifier
+                .size(48.dp)
+                .clip(CircleShape)
+                .background(Color.White.copy(alpha = 0.45f))
+                .border(1.dp, Color.White.copy(alpha = 0.6f), CircleShape)
+        ) {
+            Icon(
+                painter = painterResource(id = R.drawable.copy),
+                contentDescription = "Settings",
+                tint = Color.Black
+            )
+        }
+    }
+}
+
+
 
 // ---------------- CHAT SCREEN ----------------
 @Composable
