@@ -337,7 +337,7 @@ fun UserBubble(text: String) {
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
         Box(
             Modifier.clip(RoundedCornerShape(18.dp))
-                .background(Color(0xFFC8E6C9))
+                .background(Color(0xB3C8E6C9))
                 .padding(16.dp)
         ) { Text(text) }
     }
