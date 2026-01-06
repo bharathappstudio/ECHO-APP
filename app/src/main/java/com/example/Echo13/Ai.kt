@@ -13,6 +13,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -31,12 +32,16 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import coil.compose.AsyncImage
 import com.google.ai.client.generativeai.GenerativeModel
+import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.json.JSONArray
@@ -96,8 +101,7 @@ fun loadChats(context: Context): List<ChatMessage> {
             ChatMessage(
                 id = o.getString("id"),
                 text = o.getString("text"),
-                isUser = o.getBoolean("isUser"),
-                animated = false
+                isUser = o.getBoolean("isUser")
             )
         )
     }
@@ -141,91 +145,118 @@ fun Background() {
     )
 }
 
+// ---------------- USER AVATAR (FIXED) ----------------
+@Composable
+fun UserAvatar(
+    size: Dp = 40.dp,
+    onClick: () -> Unit
+) {
+    val user = FirebaseAuth.getInstance().currentUser
+    val name = user?.displayName ?: "U"
+
+    val photoUrl = user?.photoUrl
+        ?.toString()
+        ?.replace("s96-c", "s4096-c")
+        ?.replace("s400-c", "s4096-c")
+
+    Box(
+        modifier = Modifier
+            .size(size)
+            .clip(CircleShape)
+            .background(Color.White.copy(alpha = 22f))
+            .clickable { onClick() },
+        contentAlignment = Alignment.Center
+    ) {
+        if (photoUrl != null) {
+            AsyncImage(
+                model = photoUrl,
+                contentDescription = null,
+                modifier = Modifier.fillMaxSize().clip(CircleShape)
+            )
+        } else {
+            Text(
+                text = name.first().toString(),
+                fontSize = (size.value / 2.3).sp,
+                fontWeight = FontWeight.SemiBold
+            )
+        }
+    }
+}
+
+// ---------------- TOP BAR ----------------
+@Composable
+fun EchoTopBar() {
+    val context = LocalContext.current
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .statusBarsPadding()
+            .padding(horizontal = 14.dp, vertical = 8.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(58.dp)
+                .clip(RoundedCornerShape(40.dp))
+                .background(Color(0xFFFFF8E1).copy(alpha = 0.50f))
+                .border(1.dp, Color.White.copy(alpha = 0.35f), RoundedCornerShape(40.dp)),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+
+            IconButton(
+                onClick = {
+                    context.startActivity(
+                        android.content.Intent(context, Setting::class.java)
+                    )
+                },
+                modifier = Modifier
+                    .padding(start = 8.dp)
+                    .size(40.dp)
+                    .clip(CircleShape)
+                    .background(Color.White.copy(alpha = 22f))
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.mes),
+                    contentDescription = null
+                )
+            }
+
+            Spacer(Modifier.weight(1f))
+
+            Text(" Wellcom to Echo", fontSize = 16.sp)
+
+            Spacer(Modifier.weight(1f))
+
+            UserAvatar(size = 40.dp) {
+                context.startActivity(
+                    android.content.Intent(context, Setting::class.java)
+                )
+            }
+
+            Spacer(Modifier.width(8.dp))
+        }
+    }
+}
+
 // ---------------- ROOT ----------------
 @Composable
 fun ChatApp() {
     val model = remember {
         GenerativeModel(
             modelName = "gemini-3-flash-preview",
-            apiKey = "AIzaSyCHW7Gcae4-RU1Upyq5kTnnW_1RH_OQiQA"
+            apiKey = "YOUR_API_KEY"
         )
     }
 
     Box(Modifier.fillMaxSize()) {
         Background()
-        ChatScreen(model)
-
-        // ✅ BOTH BUTTONS
-        TopLeftRoundButton()
-        TopRightRoundButton()
-    }
-}
-
-
-// ---------------- TOP RIGHT BUTTON ----------------
-@Composable
-fun TopRightRoundButton() {
-    val context = LocalContext.current
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(top = 40.dp, end = 20.dp),
-        contentAlignment = Alignment.TopEnd
-    ) {
-        IconButton(
-            onClick = {
-                context.startActivity(
-                    android.content.Intent(context, Setting::class.java)
-                )
-            },
-            modifier = Modifier
-                .size(48.dp)
-                .clip(CircleShape)
-                .background(Color.White.copy(alpha = 0.45f))
-                .border(1.dp, Color.White.copy(alpha = 0.6f), CircleShape)
-        ) {
-            Icon(
-                painter = painterResource(id = R.drawable.set),
-                contentDescription = "Settings",
-                tint = Color.Black
-            )
+        Column {
+            EchoTopBar()
+            ChatScreen(model)
         }
     }
 }
-
-// ---------------- TOP LEFT BUTTON ----------------
-@Composable
-fun TopLeftRoundButton() {
-    val context = LocalContext.current
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(top = 40.dp, start = 20.dp),
-        contentAlignment = Alignment.TopStart
-    ) {
-        IconButton(
-            onClick = {
-                // change activity if needed
-                context.startActivity(
-                    android.content.Intent(context, Setting::class.java)
-                )
-            },
-            modifier = Modifier
-                .size(48.dp)
-                .clip(CircleShape)
-                .background(Color.White.copy(alpha = 0.45f))
-                .border(1.dp, Color.White.copy(alpha = 0.6f), CircleShape)
-        ) {
-            Icon(
-                painter = painterResource(id = R.drawable.copy),
-                contentDescription = "Settings",
-                tint = Color.Black
-            )
-        }
-    }
-}
-
-
 
 // ---------------- CHAT SCREEN ----------------
 @Composable
@@ -238,15 +269,7 @@ fun ChatScreen(model: GenerativeModel) {
     val messages = remember {
         mutableStateListOf<ChatMessage>().apply {
             addAll(loadChats(context))
-            if (isEmpty()) {
-                add(
-                    ChatMessage(
-                        text = "Hi, I am Echo 👋",
-                        isUser = false,
-                        animated = true
-                    )
-                )
-            }
+            if (isEmpty()) add(ChatMessage(text = "Hi, I am Echo 👋", isUser = false, animated = true))
         }
     }
 
@@ -260,85 +283,31 @@ fun ChatScreen(model: GenerativeModel) {
 
     fun send() {
         if (input.isBlank() || loading) return
-
-        if (!isInternetAvailable(context)) {
-            messages.add(
-                ChatMessage(
-                    text = "⚠️ No internet connection",
-                    isUser = false,
-                    animated = true
-                )
-            )
-            return
-        }
-
-        val question = input.trim()
+        val q = input.trim()
         input = ""
         keyboard?.hide()
 
-        messages.add(ChatMessage(text = question, isUser = true, animated = true))
+        messages.add(ChatMessage(text = q, isUser = true))
         loading = true
 
-        val thinkingId = UUID.randomUUID().toString()
-        messages.add(
-            ChatMessage(
-                id = thinkingId,
-                text = "Echo is thinking",
-                isUser = false,
-                isThinking = true
-            )
-        )
-
         scope.launch {
-            try {
-                delay(800)
-                val response = model.generateContent(question).text ?: "No response"
-                messages.removeAll { it.id == thinkingId }
-                messages.add(
-                    ChatMessage(
-                        text = response,
-                        isUser = false,
-                        animated = true
-                    )
-                )
-            } catch (e: Exception) {
-                messages.removeAll { it.id == thinkingId }
-                messages.add(
-                    ChatMessage(
-                        text = "Error: ${e.message}",
-                        isUser = false,
-                        animated = true
-                    )
-                )
-            } finally {
-                loading = false
-            }
+            delay(700)
+            val r = model.generateContent(q).text ?: "No response"
+            messages.add(ChatMessage(text = r, isUser = false, animated = true))
+            loading = false
         }
     }
 
-    Column(
-        Modifier
-            .fillMaxSize()
-            .imePadding()
-    ) {
+    Column(Modifier.fillMaxSize()) {
         LazyColumn(
-            modifier = Modifier
-                .weight(1f)
-                .padding(12.dp),
+            modifier = Modifier.weight(1f).padding(12.dp),
             state = listState,
-            verticalArrangement = Arrangement.spacedBy(10.dp),
-            contentPadding = PaddingValues(top = 80.dp, bottom = 16.dp)
+            verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            items(messages, key = { it.id }) { msg ->
-                AnimatedMessage(msg)
-            }
+            items(messages) { AnimatedMessage(it) }
         }
 
-        InputBar(
-            text = input,
-            onChange = { input = it },
-            onSend = { send() }
-        )
+        InputBar(input, { input = it }, { send() })
     }
 }
 
@@ -346,64 +315,19 @@ fun ChatScreen(model: GenerativeModel) {
 @Composable
 fun AnimatedMessage(msg: ChatMessage) {
     AnimatedVisibility(visible = true, enter = fadeIn()) {
-        when {
-            msg.isThinking -> ThinkingAnimatedText(msg.text)
-            msg.isUser -> UserBubble(msg.text)
-            else -> AiBubble(msg)
-        }
+        if (msg.isUser) UserBubble(msg.text) else AiBubble(msg)
     }
 }
 
-// ---------------- THINKING ----------------
-@Composable
-fun ThinkingAnimatedText(baseText: String) {
-    var dots by remember { mutableStateOf("") }
-    LaunchedEffect(Unit) {
-        while (true) {
-            dots = ""
-            delay(300)
-            dots = "."
-            delay(300)
-            dots = ".."
-            delay(300)
-            dots = "..."
-            delay(300)
-        }
-    }
-    Text(
-        text = "$baseText$dots",
-        fontSize = 14.sp,
-        color = Color.Black.copy(alpha = 0.55f),
-        modifier = Modifier.padding(start = 12.dp)
-    )
-}
-
-// ---------------- AI BUBBLE (ANIMATION ONE TIME) ----------------
+// ---------------- AI BUBBLE ----------------
 @Composable
 fun AiBubble(msg: ChatMessage) {
-    var shown by remember { mutableStateOf(msg.text) }
-    var animatedDone by remember { mutableStateOf(!msg.animated) }
-
-    LaunchedEffect(msg.id) {
-        if (!animatedDone) {
-            shown = ""
-            for (c in msg.text) {
-                shown += c
-                delay(14)
-            }
-            animatedDone = true
-        }
-    }
-
     Box(
-        Modifier
-            .widthIn(50.dp, 500.dp)
-            .clip(RoundedCornerShape(18.dp))
+        Modifier.clip(RoundedCornerShape(18.dp))
             .background(Color(0xFFFFEDB3).copy(alpha = 0.4f))
-            .border(2.dp, Color.White.copy(alpha = 0.35f), RoundedCornerShape(18.dp))
             .padding(16.dp)
     ) {
-        Text(shown, fontSize = 16.sp, color = Color(0xFF111111), lineHeight = 22.sp)
+        Text(msg.text)
     }
 }
 
@@ -412,14 +336,10 @@ fun AiBubble(msg: ChatMessage) {
 fun UserBubble(text: String) {
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
         Box(
-            Modifier
-                .clip(RoundedCornerShape(18.dp))
+            Modifier.clip(RoundedCornerShape(18.dp))
                 .background(Color(0xFFC8E6C9))
-                .border(2.dp, Color.White.copy(alpha = 0.6f), RoundedCornerShape(18.dp))
                 .padding(16.dp)
-        ) {
-            Text(text, fontSize = 16.sp, color = Color.Black)
-        }
+        ) { Text(text) }
     }
 }
 
