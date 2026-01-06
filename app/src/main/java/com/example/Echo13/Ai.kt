@@ -269,13 +269,22 @@ fun ChatScreen(model: GenerativeModel) {
     val messages = remember {
         mutableStateListOf<ChatMessage>().apply {
             addAll(loadChats(context))
-            if (isEmpty()) add(ChatMessage(text = "Hi, I am Echo 👋", isUser = false, animated = true))
+            if (isEmpty()) {
+                add(
+                    ChatMessage(
+                        text = "Hi, I am Echo 👋",
+                        isUser = false,
+                        animated = true
+                    )
+                )
+            }
         }
     }
 
     var input by remember { mutableStateOf("") }
     var loading by remember { mutableStateOf(false) }
 
+    // Auto scroll + save chat
     LaunchedEffect(messages.size) {
         listState.animateScrollToItem(messages.lastIndex)
         saveChats(context, messages.filter { !it.isThinking })
@@ -283,51 +292,165 @@ fun ChatScreen(model: GenerativeModel) {
 
     fun send() {
         if (input.isBlank() || loading) return
-        val q = input.trim()
+
+        // INTERNET CHECK (OLD BEHAVIOR)
+        if (!isInternetAvailable(context)) {
+            messages.add(
+                ChatMessage(
+                    text = "⚠️ No internet connection",
+                    isUser = false,
+                    animated = true
+                )
+            )
+            return
+        }
+
+        val question = input.trim()
         input = ""
         keyboard?.hide()
 
-        messages.add(ChatMessage(text = q, isUser = true))
+        messages.add(
+            ChatMessage(
+                text = question,
+                isUser = true,
+                animated = true
+            )
+        )
+
         loading = true
 
+        // THINKING MESSAGE
+        val thinkingId = UUID.randomUUID().toString()
+        messages.add(
+            ChatMessage(
+                id = thinkingId,
+                text = "Echo is thinking",
+                isUser = false,
+                isThinking = true
+            )
+        )
+
         scope.launch {
-            delay(700)
-            val r = model.generateContent(q).text ?: "No response"
-            messages.add(ChatMessage(text = r, isUser = false, animated = true))
-            loading = false
+            try {
+                delay(800)
+                val response =
+                    model.generateContent(question).text ?: "No response"
+
+                messages.removeAll { it.id == thinkingId }
+                messages.add(
+                    ChatMessage(
+                        text = response,
+                        isUser = false,
+                        animated = true
+                    )
+                )
+            } catch (e: Exception) {
+                messages.removeAll { it.id == thinkingId }
+                messages.add(
+                    ChatMessage(
+                        text = "Error: ${e.message}",
+                        isUser = false,
+                        animated = true
+                    )
+                )
+            } finally {
+                loading = false
+            }
         }
     }
 
-    Column(Modifier.fillMaxSize()) {
+    Column(
+        Modifier
+            .fillMaxSize()
+            .imePadding()
+    ) {
         LazyColumn(
-            modifier = Modifier.weight(1f).padding(12.dp),
+            modifier = Modifier
+                .weight(1f)
+                .padding(12.dp),
             state = listState,
-            verticalArrangement = Arrangement.spacedBy(10.dp)
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+            contentPadding = PaddingValues(
+                top = 12.dp,
+                bottom = 16.dp
+            )
         ) {
-            items(messages) { AnimatedMessage(it) }
+            items(messages, key = { it.id }) { msg ->
+                AnimatedMessage(msg)
+            }
         }
 
-        InputBar(input, { input = it }, { send() })
+        InputBar(
+            text = input,
+            onChange = { input = it },
+            onSend = { send() }
+        )
     }
 }
+
 
 // ---------------- MESSAGE ----------------
 @Composable
 fun AnimatedMessage(msg: ChatMessage) {
     AnimatedVisibility(visible = true, enter = fadeIn()) {
-        if (msg.isUser) UserBubble(msg.text) else AiBubble(msg)
+        when {
+            msg.isThinking -> ThinkingAnimatedText(msg.text)
+            msg.isUser -> UserBubble(msg.text)
+            else -> AiBubble(msg)
+        }
     }
 }
 
-// ---------------- AI BUBBLE ----------------
+// ---------------- THINKING ----------------
+@Composable
+fun ThinkingAnimatedText(baseText: String) {
+    var dots by remember { mutableStateOf("") }
+    LaunchedEffect(Unit) {
+        while (true) {
+            dots = ""
+            delay(300)
+            dots = "."
+            delay(300)
+            dots = ".."
+            delay(300)
+            dots = "..."
+            delay(300)
+        }
+    }
+    Text(
+        text = "$baseText$dots",
+        fontSize = 14.sp,
+        color = Color.Black.copy(alpha = 0.55f),
+        modifier = Modifier.padding(start = 12.dp)
+    )
+}
+
+// ---------------- AI BUBBLE (ANIMATION ONE TIME) ----------------
 @Composable
 fun AiBubble(msg: ChatMessage) {
+    var shown by remember { mutableStateOf(msg.text) }
+    var animatedDone by remember { mutableStateOf(!msg.animated) }
+
+    LaunchedEffect(msg.id) {
+        if (!animatedDone) {
+            shown = ""
+            for (c in msg.text) {
+                shown += c
+                delay(14)
+            }
+            animatedDone = true
+        }
+    }
+
     Box(
-        Modifier.clip(RoundedCornerShape(18.dp))
+        Modifier
+            .widthIn(50.dp, 500.dp)
+            .clip(RoundedCornerShape(18.dp))
             .background(Color(0xFFFFEDB3).copy(alpha = 0.4f))
+            .border(2.dp, Color.White.copy(alpha = 0.35f), RoundedCornerShape(18.dp))
             .padding(16.dp)
     ) {
-        Text(msg.text)
+        Text(shown, fontSize = 16.sp, color = Color(0xFF111111), lineHeight = 22.sp)
     }
 }
 
@@ -336,10 +459,14 @@ fun AiBubble(msg: ChatMessage) {
 fun UserBubble(text: String) {
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
         Box(
-            Modifier.clip(RoundedCornerShape(18.dp))
-                .background(Color(0xB3C8E6C9))
+            Modifier
+                .clip(RoundedCornerShape(18.dp))
+                .background(Color(0xFFC8E6C9))
+                .border(2.dp, Color.White.copy(alpha = 0.6f), RoundedCornerShape(18.dp))
                 .padding(16.dp)
-        ) { Text(text) }
+        ) {
+            Text(text, fontSize = 16.sp, color = Color.Black)
+        }
     }
 }
 
