@@ -185,7 +185,7 @@ fun SettingUI(onLogout: () -> Unit) {
                 Text("Get the best of Echo 🫐", fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
                 Spacer(Modifier.height(4.dp))
                 Text(
-                    "Higher limits, cloud storage, and Bharath apps with Echo built in Ai",
+                    "Higher limits, cloud storage,in Realtime Database Echo built in Ai",
                     fontSize = 13.sp,
                     color = Color(0xCC4E4E4E)
                 )
@@ -194,7 +194,7 @@ fun SettingUI(onLogout: () -> Unit) {
 
         Spacer(Modifier.height(24.dp))
 
-        SettingRow("Echo App as your Assistant", true) {}
+        SettingRow("Echo App Realtime Database", true) {}
         SettingRow("Permissions") {
             context.startActivity(Intent(context, PermissionsActivity::class.java))
         }
