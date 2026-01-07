@@ -176,7 +176,7 @@ fun EchoTopBar() {
                     .padding(start = 8.dp)
                     .size(40.dp)
                     .clip(CircleShape)
-                    .background(Color.White.copy(alpha = 0.22f))
+                    .background(Color.White.copy(alpha = 22f))
             ) {
                 Icon(
                     painter = painterResource(id = R.drawable.mes),
