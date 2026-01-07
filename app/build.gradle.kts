@@ -97,6 +97,11 @@ dependencies {
     implementation("com.sun.mail:android-mail:1.6.7")
     implementation("com.sun.mail:android-activation:1.6.7")
 
+    // ---------------- Firebase ----------------
+    implementation(platform("com.google.firebase:firebase-bom:33.7.0"))
+    implementation("com.google.firebase:firebase-auth")
+    implementation("com.google.firebase:firebase-database")
+
     // ---------------- Testing ----------------
     testImplementation("junit:junit:4.13.2")
 

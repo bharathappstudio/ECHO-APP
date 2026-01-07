@@ -24,6 +24,7 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -42,10 +43,10 @@ import androidx.core.view.WindowInsetsControllerCompat
 import coil.compose.AsyncImage
 import com.google.ai.client.generativeai.GenerativeModel
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.*
+import com.google.firebase.database.IgnoreExtraProperties
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import org.json.JSONArray
-import org.json.JSONObject
 import java.util.UUID
 import android.graphics.Color as SysColor
 
@@ -61,52 +62,16 @@ fun isInternetAvailable(context: Context): Boolean {
     }
 }
 
-// ---------------- DATA ----------------
+// ---------------- DATA (FIXED FOR FIREBASE) ----------------
+@IgnoreExtraProperties
 data class ChatMessage(
-    val id: String = UUID.randomUUID().toString(),
-    val text: String,
-    val isUser: Boolean,
-    val animated: Boolean = false,
-    val isThinking: Boolean = false
+    var id: String = "",
+    var text: String = "",
+    var isUser: Boolean = false,
+    var animated: Boolean = false,
+    var isThinking: Boolean = false,
+    var timestamp: Long = 0L
 )
-
-// ---------------- LOCAL STORAGE ----------------
-private const val PREFS = "echo_chat"
-private const val KEY_CHAT = "chat_data"
-
-fun saveChats(context: Context, list: List<ChatMessage>) {
-    val arr = JSONArray()
-    list.forEach {
-        val o = JSONObject()
-        o.put("id", it.id)
-        o.put("text", it.text)
-        o.put("isUser", it.isUser)
-        arr.put(o)
-    }
-    context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-        .edit()
-        .putString(KEY_CHAT, arr.toString())
-        .apply()
-}
-
-fun loadChats(context: Context): List<ChatMessage> {
-    val json = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-        .getString(KEY_CHAT, null) ?: return emptyList()
-
-    val arr = JSONArray(json)
-    val list = mutableListOf<ChatMessage>()
-    for (i in 0 until arr.length()) {
-        val o = arr.getJSONObject(i)
-        list.add(
-            ChatMessage(
-                id = o.getString("id"),
-                text = o.getString("text"),
-                isUser = o.getBoolean("isUser")
-            )
-        )
-    }
-    return list
-}
 
 // ---------------- ACTIVITY ----------------
 class Ai : ComponentActivity() {
@@ -145,12 +110,9 @@ fun Background() {
     )
 }
 
-// ---------------- USER AVATAR (FIXED) ----------------
+// ---------------- USER AVATAR ----------------
 @Composable
-fun UserAvatar(
-    size: Dp = 40.dp,
-    onClick: () -> Unit
-) {
+fun UserAvatar(size: Dp = 40.dp, onClick: () -> Unit) {
     val user = FirebaseAuth.getInstance().currentUser
     val name = user?.displayName ?: "U"
 
@@ -163,7 +125,7 @@ fun UserAvatar(
         modifier = Modifier
             .size(size)
             .clip(CircleShape)
-            .background(Color.White.copy(alpha = 22f))
+            .background(Color.White.copy(alpha = 0.22f))
             .clickable { onClick() },
         contentAlignment = Alignment.Center
     ) {
@@ -214,7 +176,7 @@ fun EchoTopBar() {
                     .padding(start = 8.dp)
                     .size(40.dp)
                     .clip(CircleShape)
-                    .background(Color.White.copy(alpha = 22f))
+                    .background(Color.White.copy(alpha = 0.22f))
             ) {
                 Icon(
                     painter = painterResource(id = R.drawable.mes),
@@ -223,9 +185,7 @@ fun EchoTopBar() {
             }
 
             Spacer(Modifier.weight(1f))
-
             Text(" Wellcom to Echo", fontSize = 16.sp)
-
             Spacer(Modifier.weight(1f))
 
             UserAvatar(size = 40.dp) {
@@ -245,7 +205,7 @@ fun ChatApp() {
     val model = remember {
         GenerativeModel(
             modelName = "gemini-3-flash-preview",
-            apiKey = "AIzaSyCHW7Gcae4-RU1Upyq5kTnnW_1RH_OQiQA"
+            apiKey = "YOUR_API_KEY"
         )
     }
 
@@ -266,42 +226,59 @@ fun ChatScreen(model: GenerativeModel) {
     val scope = rememberCoroutineScope()
     val listState = rememberLazyListState()
 
-    val messages = remember {
-        mutableStateListOf<ChatMessage>().apply {
-            addAll(loadChats(context))
-            if (isEmpty()) {
-                add(
-                    ChatMessage(
-                        text = "Hi, I am Echo 👋",
-                        isUser = false,
-                        animated = true
-                    )
-                )
-            }
-        }
-    }
+    val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return
+    val dbRef = FirebaseDatabase.getInstance().reference
+        .child("users")
+        .child(uid)
+        .child("chats")
 
+    val messages = remember { mutableStateListOf<ChatMessage>() }
     var input by remember { mutableStateOf("") }
     var loading by remember { mutableStateOf(false) }
 
-    // Auto scroll + save chat
+    // -------- FIXED REALTIME LISTENER --------
+    LaunchedEffect(Unit) {
+        dbRef.addChildEventListener(object : ChildEventListener {
+
+            override fun onChildAdded(snapshot: DataSnapshot, prev: String?) {
+                val msg = ChatMessage(
+                    id = snapshot.key ?: "",
+                    text = snapshot.child("text").getValue(String::class.java) ?: "",
+                    isUser = snapshot.child("isUser").getValue(Boolean::class.java) ?: false,
+                    timestamp = snapshot.child("timestamp").getValue(Long::class.java) ?: 0L
+                )
+                messages.add(msg)
+            }
+
+            override fun onChildChanged(snapshot: DataSnapshot, prev: String?) {}
+            override fun onChildRemoved(snapshot: DataSnapshot) {}
+            override fun onChildMoved(snapshot: DataSnapshot, prev: String?) {}
+            override fun onCancelled(error: DatabaseError) {}
+        })
+    }
+
     LaunchedEffect(messages.size) {
-        listState.animateScrollToItem(messages.lastIndex)
-        saveChats(context, messages.filter { !it.isThinking })
+        if (messages.isNotEmpty()) {
+            listState.animateScrollToItem(messages.lastIndex)
+        }
+    }
+
+    fun saveMessage(text: String, isUser: Boolean) {
+        val key = dbRef.push().key ?: return
+        dbRef.child(key).setValue(
+            ChatMessage(
+                id = key,
+                text = text,
+                isUser = isUser,
+                timestamp = System.currentTimeMillis()
+            )
+        )
     }
 
     fun send() {
         if (input.isBlank() || loading) return
-
-        // INTERNET CHECK (OLD BEHAVIOR)
         if (!isInternetAvailable(context)) {
-            messages.add(
-                ChatMessage(
-                    text = "⚠️ No internet connection",
-                    isUser = false,
-                    animated = true
-                )
-            )
+            saveMessage("⚠️ No internet connection", false)
             return
         }
 
@@ -309,152 +286,69 @@ fun ChatScreen(model: GenerativeModel) {
         input = ""
         keyboard?.hide()
 
-        messages.add(
-            ChatMessage(
-                text = question,
-                isUser = true,
-                animated = true
-            )
-        )
-
+        saveMessage(question, true)
         loading = true
-
-        // THINKING MESSAGE
-        val thinkingId = UUID.randomUUID().toString()
-        messages.add(
-            ChatMessage(
-                id = thinkingId,
-                text = "Echo is thinking",
-                isUser = false,
-                isThinking = true
-            )
-        )
 
         scope.launch {
             try {
                 delay(800)
-                val response =
-                    model.generateContent(question).text ?: "No response"
-
-                messages.removeAll { it.id == thinkingId }
-                messages.add(
-                    ChatMessage(
-                        text = response,
-                        isUser = false,
-                        animated = true
-                    )
-                )
+                val response = model.generateContent(question).text ?: "No response"
+                saveMessage(response, false)
             } catch (e: Exception) {
-                messages.removeAll { it.id == thinkingId }
-                messages.add(
-                    ChatMessage(
-                        text = "Error: ${e.message}",
-                        isUser = false,
-                        animated = true
-                    )
-                )
+                saveMessage("Error: ${e.message}", false)
             } finally {
                 loading = false
             }
         }
     }
 
-    Column(
-        Modifier
-            .fillMaxSize()
-            .imePadding()
-    ) {
+    Column(Modifier.fillMaxSize().imePadding()) {
         LazyColumn(
-            modifier = Modifier
-                .weight(1f)
-                .padding(12.dp),
+            modifier = Modifier.weight(1f).padding(12.dp),
             state = listState,
-            verticalArrangement = Arrangement.spacedBy(10.dp),
-            contentPadding = PaddingValues(
-                top = 12.dp,
-                bottom = 16.dp
-            )
+            verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             items(messages, key = { it.id }) { msg ->
                 AnimatedMessage(msg)
             }
         }
 
-        InputBar(
-            text = input,
-            onChange = { input = it },
-            onSend = { send() }
-        )
+        InputBar(text = input, onChange = { input = it }, onSend = { send() })
     }
 }
-
 
 // ---------------- MESSAGE ----------------
 @Composable
 fun AnimatedMessage(msg: ChatMessage) {
     AnimatedVisibility(visible = true, enter = fadeIn()) {
-        when {
-            msg.isThinking -> ThinkingAnimatedText(msg.text)
-            msg.isUser -> UserBubble(msg.text)
-            else -> AiBubble(msg)
-        }
+        if (msg.isUser) UserBubble(msg.text) else AiBubble(msg)
     }
 }
 
-// ---------------- THINKING ----------------
-@Composable
-fun ThinkingAnimatedText(baseText: String) {
-    var dots by remember { mutableStateOf("") }
-    LaunchedEffect(Unit) {
-        while (true) {
-            dots = ""
-            delay(300)
-            dots = "."
-            delay(300)
-            dots = ".."
-            delay(300)
-            dots = "..."
-            delay(300)
-        }
-    }
-    Text(
-        text = "$baseText$dots",
-        fontSize = 14.sp,
-        color = Color.Black.copy(alpha = 0.55f),
-        modifier = Modifier.padding(start = 12.dp)
-    )
-}
-
-// ---------------- AI BUBBLE (ANIMATION ONE TIME) ----------------
+// ---------------- AI BUBBLE (LEFT) ----------------
 @Composable
 fun AiBubble(msg: ChatMessage) {
-    var shown by remember { mutableStateOf(msg.text) }
-    var animatedDone by remember { mutableStateOf(!msg.animated) }
+    var shown by rememberSaveable(msg.id) { mutableStateOf("") }
 
     LaunchedEffect(msg.id) {
-        if (!animatedDone) {
-            shown = ""
-            for (c in msg.text) {
-                shown += c
-                delay(14)
-            }
-            animatedDone = true
-        }
+        shown = msg.text
     }
 
-    Box(
-        Modifier
-            .widthIn(50.dp, 500.dp)
-            .clip(RoundedCornerShape(18.dp))
-            .background(Color(0xFFFFEDB3).copy(alpha = 0.4f))
-            .border(2.dp, Color.White.copy(alpha = 0.35f), RoundedCornerShape(18.dp))
-            .padding(16.dp)
-    ) {
-        Text(shown, fontSize = 16.sp, color = Color(0xFF111111), lineHeight = 22.sp)
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Start) {
+        Box(
+            Modifier
+                .widthIn(50.dp, 500.dp)
+                .clip(RoundedCornerShape(18.dp))
+                .background(Color(0xFFFFECB3).copy(alpha = 0.4f))
+                .border(2.dp, Color.White.copy(alpha = 0.35f), RoundedCornerShape(18.dp))
+                .padding(16.dp)
+        ) {
+            Text(shown, fontSize = 16.sp)
+        }
     }
 }
 
-// ---------------- USER BUBBLE ----------------
+// ---------------- USER BUBBLE (RIGHT) ----------------
 @Composable
 fun UserBubble(text: String) {
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
@@ -465,27 +359,21 @@ fun UserBubble(text: String) {
                 .border(2.dp, Color.White.copy(alpha = 0.6f), RoundedCornerShape(18.dp))
                 .padding(16.dp)
         ) {
-            Text(text, fontSize = 16.sp, color = Color.Black)
+            Text(text, fontSize = 16.sp)
         }
     }
 }
 
 // ---------------- INPUT BAR ----------------
 @Composable
-fun InputBar(
-    text: String,
-    onChange: (String) -> Unit,
-    onSend: () -> Unit
-) {
+fun InputBar(text: String, onChange: (String) -> Unit, onSend: () -> Unit) {
     val enabled = text.isNotBlank()
 
     Row(
-        Modifier
-            .fillMaxWidth()
-            .padding(10.dp)
+        Modifier.fillMaxWidth().padding(10.dp)
             .clip(RoundedCornerShape(22.dp))
             .background(Color.White.copy(alpha = 0.40f))
-            .border(2.dp, Color.White.copy(alpha = 1f), RoundedCornerShape(22.dp))
+            .border(2.dp, Color.White, RoundedCornerShape(22.dp))
             .padding(horizontal = 10.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -511,21 +399,10 @@ fun InputBar(
         IconButton(
             onClick = onSend,
             enabled = enabled,
-            modifier = Modifier
-                .size(42.dp)
-                .clip(CircleShape)
-                .background(
-                    if (enabled) Color(0x807BE17B)
-                    else Color.White.copy(alpha = 0.25f)
-                )
+            modifier = Modifier.size(42.dp).clip(CircleShape)
+                .background(if (enabled) Color(0x807BE17B) else Color.White.copy(alpha = 0.25f))
         ) {
-            Icon(
-                painter = painterResource(id = R.drawable.send),
-                contentDescription = "Send",
-                tint = if (enabled) Color.Black else Color.Black.copy(alpha = 0.4f),
-                modifier = Modifier.size(24.dp)
-            )
+            Icon(painterResource(id = R.drawable.send), contentDescription = "Send")
         }
     }
 }
-
