@@ -8,6 +8,8 @@ import android.os.Bundle
 import android.view.WindowManager
 import android.content.Intent
 import android.graphics.Color as SysColor
+import android.content.ClipData
+import android.content.ClipboardManager
 
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -51,10 +53,6 @@ import com.google.firebase.database.IgnoreExtraProperties
 
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-
-import android.content.ClipData
-import android.content.ClipboardManager
-
 
 // ---------------- INTERNET CHECK ----------------
 fun isInternetAvailable(context: Context): Boolean {
@@ -115,6 +113,28 @@ fun Background() {
         contentScale = ContentScale.Crop
     )
 }
+
+// ---------------- EMPTY CHAT IMAGE ----------------
+@Composable
+fun EmptyChatImage() {
+    Box(
+        modifier = Modifier.fillMaxSize()
+    ) {
+        Image(
+            painter = painterResource(id = R.drawable.bg),
+            contentDescription = "No messages",
+            modifier = Modifier
+                .size(1000.dp)              // 🔹 IMAGE SIZE
+                .align(Alignment.Center)   // 🔹 BASE POSITION
+                .offset(
+                    x = (0).dp,          // ⬅️➡️ LEFT (-) / RIGHT (+)
+                    y = (0).dp            // ⬆️ UP (-) / DOWN (+)
+                ),
+            alpha = 0.9f
+        )
+    }
+}
+
 
 // ---------------- USER AVATAR ----------------
 @Composable
@@ -313,28 +333,34 @@ fun ChatScreen(model: GenerativeModel) {
         }
     }
 
-    Column(Modifier.fillMaxSize().imePadding()) {
-        LazyColumn(
-            modifier = Modifier.weight(1f).padding(12.dp),
-            state = listState,
-            verticalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            items(messages, key = { it.id }) { msg ->
-                AnimatedMessage(
-                    msg = msg,
-                    onLongPress = { deleteTargetId = msg.id }
-                )
-            }
+    // 🔽 ONLY CHANGE: Box wrapper + image check
+    Box(Modifier.fillMaxSize().imePadding()) {
+
+        if (messages.isEmpty()) {
+            EmptyChatImage()
         }
 
-        InputBar(text = input, onChange = { input = it }, onSend = { send() })
+        Column {
+            LazyColumn(
+                modifier = Modifier.weight(1f).padding(12.dp),
+                state = listState,
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                items(messages, key = { it.id }) { msg ->
+                    AnimatedMessage(
+                        msg = msg,
+                        onLongPress = { deleteTargetId = msg.id }
+                    )
+                }
+            }
+
+            InputBar(text = input, onChange = { input = it }, onSend = { send() })
+        }
     }
 
-    //                                     delet ui
-
+    // ---------------- DELETE UI ----------------
     if (deleteTargetId != null) {
 
-        val context = LocalContext.current
         val clipboard =
             context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
 
@@ -344,56 +370,30 @@ fun ChatScreen(model: GenerativeModel) {
         AlertDialog(
             onDismissRequest = { deleteTargetId = null },
             shape = RoundedCornerShape(20.dp),
-            title = {
-                Text(
-                    text = "Message options",
-                    fontWeight = FontWeight.SemiBold
-                )
-            },
-            text = {
-                Text(
-                    text = "Choose what you want to do with this message.",
-                    color = Color.Gray
-                )
-            },
+            title = { Text("Message options", fontWeight = FontWeight.SemiBold) },
+            text = { Text("Choose what you want to do with this message.", color = Color.Gray) },
             confirmButton = {
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    TextButton(onClick = {
+                        clipboard.setPrimaryClip(
+                            ClipData.newPlainText("chat_message", messageToCopy)
+                        )
+                        deleteTargetId = null
+                    }) { Text("Copy") }
 
-                    // COPY BUTTON
-                    TextButton(
-                        onClick = {
-                            clipboard.setPrimaryClip(
-                                ClipData.newPlainText("chat_message", messageToCopy)
-                            )
-                            deleteTargetId = null
-                        }
-                    ) {
-                        Text("Copy")
-                    }
-
-                    // DELETE BUTTON
-                    TextButton(
-                        onClick = {
-                            deleteMessage(deleteTargetId!!)
-                            deleteTargetId = null
-                        }
-                    ) {
-                        Text("Delete", color = Color.Red)
-                    }
+                    TextButton(onClick = {
+                        deleteMessage(deleteTargetId!!)
+                        deleteTargetId = null
+                    }) { Text("Delete", color = Color.Red) }
                 }
             },
             dismissButton = {
-                TextButton(
-                    onClick = { deleteTargetId = null }
-                ) {
+                TextButton(onClick = { deleteTargetId = null }) {
                     Text("Cancel")
                 }
             }
         )
     }
-
 }
 
 // ---------------- MESSAGE ----------------
