@@ -6,14 +6,15 @@ import android.net.NetworkCapabilities
 import android.os.Build
 import android.os.Bundle
 import android.view.WindowManager
+import android.content.Intent
+import android.graphics.Color as SysColor
+
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.*
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -29,6 +30,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -41,14 +43,17 @@ import androidx.compose.ui.unit.sp
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import coil.compose.AsyncImage
+
 import com.google.ai.client.generativeai.GenerativeModel
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
 import com.google.firebase.database.IgnoreExtraProperties
+
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import android.graphics.Color as SysColor
-import android.content.Intent
+
+import android.content.ClipData
+import android.content.ClipboardManager
 
 
 // ---------------- INTERNET CHECK ----------------
@@ -163,15 +168,10 @@ fun EchoTopBar() {
                 .height(58.dp)
                 .clip(RoundedCornerShape(40.dp))
                 .background(Color(0xFFFFF8E1).copy(alpha = 0.50f))
-                .border(
-                    1.dp,
-                    Color.White.copy(alpha = 0.35f),
-                    RoundedCornerShape(40.dp)
-                ),
+                .border(1.dp, Color.White.copy(alpha = 0.35f), RoundedCornerShape(40.dp)),
             verticalAlignment = Alignment.CenterVertically
         ) {
 
-            // LEFT ICON → DataControlsActivity
             IconButton(
                 onClick = {
                     context.startActivity(
@@ -194,7 +194,6 @@ fun EchoTopBar() {
 
             Spacer(Modifier.weight(1f))
 
-            // TITLE
             Text(
                 text = "Welcome to Echo",
                 fontSize = 16.sp,
@@ -203,18 +202,14 @@ fun EchoTopBar() {
 
             Spacer(Modifier.weight(1f))
 
-            // RIGHT USER AVATAR (unchanged)
             UserAvatar(size = 40.dp) {
-                context.startActivity(
-                    Intent(context, Setting::class.java)
-                )
+                context.startActivity(Intent(context, Setting::class.java))
             }
 
             Spacer(Modifier.width(8.dp))
         }
     }
 }
-
 
 // ---------------- ROOT ----------------
 @Composable
@@ -235,7 +230,7 @@ fun ChatApp() {
     }
 }
 
-// ---------------- CHAT SCREEN (LIVE + SMOOTH) ----------------
+// ---------------- CHAT SCREEN ----------------
 @Composable
 fun ChatScreen(model: GenerativeModel) {
     val context = LocalContext.current
@@ -252,8 +247,8 @@ fun ChatScreen(model: GenerativeModel) {
     val messages = remember { mutableStateListOf<ChatMessage>() }
     var input by remember { mutableStateOf("") }
     var loading by remember { mutableStateOf(false) }
+    var deleteTargetId by remember { mutableStateOf<String?>(null) }
 
-    // -------- REALTIME FIREBASE (ORIGINAL, WORKING) --------
     LaunchedEffect(Unit) {
         dbRef.addValueEventListener(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
@@ -269,7 +264,6 @@ fun ChatScreen(model: GenerativeModel) {
         })
     }
 
-    // -------- SAFE SMOOTH SCROLL --------
     LaunchedEffect(messages.size) {
         if (messages.isNotEmpty()) {
             listState.scrollToItem(messages.lastIndex)
@@ -286,6 +280,10 @@ fun ChatScreen(model: GenerativeModel) {
                 timestamp = System.currentTimeMillis()
             )
         )
+    }
+
+    fun deleteMessage(id: String) {
+        dbRef.child(id).removeValue()
     }
 
     fun send() {
@@ -322,34 +320,107 @@ fun ChatScreen(model: GenerativeModel) {
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             items(messages, key = { it.id }) { msg ->
-                AnimatedMessage(msg)
+                AnimatedMessage(
+                    msg = msg,
+                    onLongPress = { deleteTargetId = msg.id }
+                )
             }
         }
 
         InputBar(text = input, onChange = { input = it }, onSend = { send() })
     }
+
+    //                                     delet ui
+
+    if (deleteTargetId != null) {
+
+        val context = LocalContext.current
+        val clipboard =
+            context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+
+        val messageToCopy =
+            messages.firstOrNull { it.id == deleteTargetId }?.text ?: ""
+
+        AlertDialog(
+            onDismissRequest = { deleteTargetId = null },
+            shape = RoundedCornerShape(20.dp),
+            title = {
+                Text(
+                    text = "Message options",
+                    fontWeight = FontWeight.SemiBold
+                )
+            },
+            text = {
+                Text(
+                    text = "Choose what you want to do with this message.",
+                    color = Color.Gray
+                )
+            },
+            confirmButton = {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+
+                    // COPY BUTTON
+                    TextButton(
+                        onClick = {
+                            clipboard.setPrimaryClip(
+                                ClipData.newPlainText("chat_message", messageToCopy)
+                            )
+                            deleteTargetId = null
+                        }
+                    ) {
+                        Text("Copy")
+                    }
+
+                    // DELETE BUTTON
+                    TextButton(
+                        onClick = {
+                            deleteMessage(deleteTargetId!!)
+                            deleteTargetId = null
+                        }
+                    ) {
+                        Text("Delete", color = Color.Red)
+                    }
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { deleteTargetId = null }
+                ) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+
 }
 
 // ---------------- MESSAGE ----------------
 @Composable
-fun AnimatedMessage(msg: ChatMessage) {
+fun AnimatedMessage(
+    msg: ChatMessage,
+    onLongPress: () -> Unit
+) {
     AnimatedVisibility(visible = true, enter = fadeIn()) {
-        if (msg.isUser) UserBubble(msg.text) else AiBubble(msg)
+        if (msg.isUser)
+            UserBubble(msg.text, onLongPress)
+        else
+            AiBubble(msg, onLongPress)
     }
 }
 
 // ---------------- AI BUBBLE ----------------
 @Composable
-fun AiBubble(msg: ChatMessage) {
-    var shown by rememberSaveable(msg.id) { mutableStateOf("") }
-
-    LaunchedEffect(msg.id) {
-        shown = msg.text
-    }
+fun AiBubble(msg: ChatMessage, onLongPress: () -> Unit) {
+    var shown by rememberSaveable(msg.id) { mutableStateOf(msg.text) }
 
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Start) {
         Box(
             Modifier
+                .pointerInput(Unit) {
+                    detectTapGestures(onLongPress = { onLongPress() })
+                }
                 .widthIn(50.dp, 500.dp)
                 .clip(RoundedCornerShape(18.dp))
                 .background(Color(0xFFFFECB3).copy(alpha = 0.4f))
@@ -363,10 +434,13 @@ fun AiBubble(msg: ChatMessage) {
 
 // ---------------- USER BUBBLE ----------------
 @Composable
-fun UserBubble(text: String) {
+fun UserBubble(text: String, onLongPress: () -> Unit) {
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
         Box(
             Modifier
+                .pointerInput(Unit) {
+                    detectTapGestures(onLongPress = { onLongPress() })
+                }
                 .clip(RoundedCornerShape(18.dp))
                 .background(Color(0xB3C8E6C9))
                 .border(2.dp, Color.White.copy(alpha = 0.80f), RoundedCornerShape(18.dp))
@@ -412,10 +486,15 @@ fun InputBar(text: String, onChange: (String) -> Unit, onSend: () -> Unit) {
         IconButton(
             onClick = onSend,
             enabled = enabled,
-            modifier = Modifier.size(42.dp).clip(CircleShape)
+            modifier = Modifier
+                .size(42.dp)
+                .clip(CircleShape)
                 .background(if (enabled) Color(0x807BE17B) else Color.White.copy(alpha = 0.25f))
         ) {
-            Icon(painterResource(id = R.drawable.send), contentDescription = "Send")
+            Icon(
+                painter = painterResource(id = R.drawable.send),
+                contentDescription = "Send"
+            )
         }
     }
 }

@@ -1,4 +1,3 @@
-// ======================= Setting.kt =======================
 package com.ai.Echo
 
 import android.content.Intent
@@ -35,6 +34,8 @@ import androidx.compose.ui.unit.sp
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import coil.compose.AsyncImage
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.firebase.auth.FirebaseAuth
 
 class Setting : ComponentActivity() {
@@ -55,26 +56,43 @@ class Setting : ComponentActivity() {
 
         prefs = getSharedPreferences("echo_prefs", MODE_PRIVATE)
 
+        // ✅ Google Sign-In client (REQUIRED for logout)
+        val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+            .requestEmail()
+            .build()
+
+        val googleSignInClient = GoogleSignIn.getClient(this, gso)
+
         setContent {
             MaterialTheme {
                 SettingUI(
                     onLogout = {
+                        // ✅ 1. Firebase logout
                         FirebaseAuth.getInstance().signOut()
-                        prefs.edit().clear().apply()
-                        startActivity(
-                            Intent(this, MainActivity::class.java).apply {
-                                flags =
-                                    Intent.FLAG_ACTIVITY_NEW_TASK or
-                                            Intent.FLAG_ACTIVITY_CLEAR_TASK
-                            }
-                        )
-                        finish()
+
+                        // ✅ 2. Google logout (THIS WAS MISSING)
+                        googleSignInClient.signOut().addOnCompleteListener {
+
+                            // ✅ 3. Clear local data
+                            prefs.edit().clear().apply()
+
+                            // ✅ 4. Restart app clean
+                            startActivity(
+                                Intent(this, MainActivity::class.java).apply {
+                                    flags =
+                                        Intent.FLAG_ACTIVITY_NEW_TASK or
+                                                Intent.FLAG_ACTIVITY_CLEAR_TASK
+                                }
+                            )
+                            finish()
+                        }
                     }
                 )
             }
         }
     }
 }
+
 
 @Composable
 fun SettingUI(onLogout: () -> Unit) {
