@@ -118,20 +118,27 @@ fun Background() {
 @Composable
 fun EmptyChatImage() {
     Box(
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
     ) {
-        Image(
-            painter = painterResource(id = R.drawable.bg),
-            contentDescription = "No messages",
-            modifier = Modifier
-                .size(1000.dp)              // 🔹 IMAGE SIZE
-                .align(Alignment.Center)   // 🔹 BASE POSITION
-                .offset(
-                    x = (0).dp,          // ⬅️➡️ LEFT (-) / RIGHT (+)
-                    y = (0).dp            // ⬆️ UP (-) / DOWN (+)
-                ),
-            alpha = 0.9f
-        )
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Image(
+                painter = painterResource(id = R.drawable.bg),
+                contentDescription = "No messages",
+                modifier = Modifier
+                    .size(300.dp)          // 🔹 IMAGE SIZE
+                    .offset(
+                        x = 0.dp,          // ⬅️➡️ LEFT / RIGHT
+                        y = 0.dp           // ⬆️ UP / DOWN
+                    ),
+                alpha = 0.9f
+            )
+
+            Spacer(modifier = Modifier.height(16.dp)) // 🔹 SPACE BETWEEN IMAGE & TEXT
+
+        }
     }
 }
 
