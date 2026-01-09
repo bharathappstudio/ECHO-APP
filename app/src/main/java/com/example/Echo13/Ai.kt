@@ -177,10 +177,7 @@ fun EchoTopBar() {
                     .clip(CircleShape)
                     .background(Color.White.copy(alpha = 22f))
             ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.mes),
-                    contentDescription = null
-                )
+                Icon(painter = painterResource(id = R.drawable.mes), contentDescription = null)
             }
 
             Spacer(Modifier.weight(1f))
@@ -217,7 +214,7 @@ fun ChatApp() {
     }
 }
 
-// ---------------- CHAT SCREEN (FIXED) ----------------
+// ---------------- CHAT SCREEN (LIVE + SMOOTH) ----------------
 @Composable
 fun ChatScreen(model: GenerativeModel) {
     val context = LocalContext.current
@@ -235,7 +232,7 @@ fun ChatScreen(model: GenerativeModel) {
     var input by remember { mutableStateOf("") }
     var loading by remember { mutableStateOf(false) }
 
-    // -------- FIXED REALTIME LISTENER --------
+    // -------- REALTIME FIREBASE (ORIGINAL, WORKING) --------
     LaunchedEffect(Unit) {
         dbRef.addValueEventListener(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
@@ -251,9 +248,10 @@ fun ChatScreen(model: GenerativeModel) {
         })
     }
 
+    // -------- SAFE SMOOTH SCROLL --------
     LaunchedEffect(messages.size) {
         if (messages.isNotEmpty()) {
-            listState.animateScrollToItem(messages.lastIndex)
+            listState.scrollToItem(messages.lastIndex)
         }
     }
 
@@ -350,7 +348,7 @@ fun UserBubble(text: String) {
             Modifier
                 .clip(RoundedCornerShape(18.dp))
                 .background(Color(0xB3C8E6C9))
-                .border(2.dp, Color.White.copy(alpha = 0.6f), RoundedCornerShape(18.dp))
+                .border(2.dp, Color.White.copy(alpha = 0.80f), RoundedCornerShape(18.dp))
                 .padding(16.dp)
         ) {
             Text(text, fontSize = 16.sp)
