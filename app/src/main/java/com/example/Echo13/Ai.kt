@@ -47,7 +47,6 @@ import com.google.firebase.database.*
 import com.google.firebase.database.IgnoreExtraProperties
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import java.util.UUID
 import android.graphics.Color as SysColor
 
 // ---------------- INTERNET CHECK ----------------
@@ -62,7 +61,7 @@ fun isInternetAvailable(context: Context): Boolean {
     }
 }
 
-// ---------------- DATA (FIXED FOR FIREBASE) ----------------
+// ---------------- DATA ----------------
 @IgnoreExtraProperties
 data class ChatMessage(
     var id: String = "",
@@ -185,7 +184,7 @@ fun EchoTopBar() {
             }
 
             Spacer(Modifier.weight(1f))
-            Text(" Wellcom to Echo", fontSize = 16.sp)
+            Text("Wellcom to Echo", fontSize = 16.sp)
             Spacer(Modifier.weight(1f))
 
             UserAvatar(size = 40.dp) {
@@ -218,7 +217,7 @@ fun ChatApp() {
     }
 }
 
-// ---------------- CHAT SCREEN ----------------
+// ---------------- CHAT SCREEN (FIXED) ----------------
 @Composable
 fun ChatScreen(model: GenerativeModel) {
     val context = LocalContext.current
@@ -238,21 +237,16 @@ fun ChatScreen(model: GenerativeModel) {
 
     // -------- FIXED REALTIME LISTENER --------
     LaunchedEffect(Unit) {
-        dbRef.addChildEventListener(object : ChildEventListener {
-
-            override fun onChildAdded(snapshot: DataSnapshot, prev: String?) {
-                val msg = ChatMessage(
-                    id = snapshot.key ?: "",
-                    text = snapshot.child("text").getValue(String::class.java) ?: "",
-                    isUser = snapshot.child("isUser").getValue(Boolean::class.java) ?: false,
-                    timestamp = snapshot.child("timestamp").getValue(Long::class.java) ?: 0L
-                )
-                messages.add(msg)
+        dbRef.addValueEventListener(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                messages.clear()
+                snapshot.children.forEach { child ->
+                    val msg = child.getValue(ChatMessage::class.java)
+                    if (msg != null) messages.add(msg)
+                }
+                messages.sortBy { it.timestamp }
             }
 
-            override fun onChildChanged(snapshot: DataSnapshot, prev: String?) {}
-            override fun onChildRemoved(snapshot: DataSnapshot) {}
-            override fun onChildMoved(snapshot: DataSnapshot, prev: String?) {}
             override fun onCancelled(error: DatabaseError) {}
         })
     }
@@ -278,7 +272,7 @@ fun ChatScreen(model: GenerativeModel) {
     fun send() {
         if (input.isBlank() || loading) return
         if (!isInternetAvailable(context)) {
-            saveMessage("⚠️ No internet connection", false)
+            saveMessage("No internet connection", false)
             return
         }
 
@@ -325,7 +319,7 @@ fun AnimatedMessage(msg: ChatMessage) {
     }
 }
 
-// ---------------- AI BUBBLE (LEFT) ----------------
+// ---------------- AI BUBBLE ----------------
 @Composable
 fun AiBubble(msg: ChatMessage) {
     var shown by rememberSaveable(msg.id) { mutableStateOf("") }
@@ -348,14 +342,14 @@ fun AiBubble(msg: ChatMessage) {
     }
 }
 
-// ---------------- USER BUBBLE (RIGHT) ----------------
+// ---------------- USER BUBBLE ----------------
 @Composable
 fun UserBubble(text: String) {
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
         Box(
             Modifier
                 .clip(RoundedCornerShape(18.dp))
-                .background(Color(0xFFC8E6C9))
+                .background(Color(0xB3C8E6C9))
                 .border(2.dp, Color.White.copy(alpha = 0.6f), RoundedCornerShape(18.dp))
                 .padding(16.dp)
         ) {
@@ -372,7 +366,7 @@ fun InputBar(text: String, onChange: (String) -> Unit, onSend: () -> Unit) {
     Row(
         Modifier.fillMaxWidth().padding(10.dp)
             .clip(RoundedCornerShape(22.dp))
-            .background(Color.White.copy(alpha = 0.40f))
+            .background(Color.White.copy(alpha = 40f))
             .border(2.dp, Color.White, RoundedCornerShape(22.dp))
             .padding(horizontal = 10.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically
