@@ -48,6 +48,11 @@
             android:name=".Setting"
             android:exported="false" />
 
+        <!-- DATA CONTROLS (✅ ADDED) -->
+        <activity
+            android:name=".DataControlsActivity"
+            android:exported="false" />
+
         <!-- PERMISSIONS -->
         <activity
             android:name=".PermissionsActivity"

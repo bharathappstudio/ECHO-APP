@@ -48,6 +48,8 @@ import com.google.firebase.database.IgnoreExtraProperties
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import android.graphics.Color as SysColor
+import android.content.Intent
+
 
 // ---------------- INTERNET CHECK ----------------
 fun isInternetAvailable(context: Context): Boolean {
@@ -161,14 +163,19 @@ fun EchoTopBar() {
                 .height(58.dp)
                 .clip(RoundedCornerShape(40.dp))
                 .background(Color(0xFFFFF8E1).copy(alpha = 0.50f))
-                .border(1.dp, Color.White.copy(alpha = 0.35f), RoundedCornerShape(40.dp)),
+                .border(
+                    1.dp,
+                    Color.White.copy(alpha = 0.35f),
+                    RoundedCornerShape(40.dp)
+                ),
             verticalAlignment = Alignment.CenterVertically
         ) {
 
+            // LEFT ICON → DataControlsActivity
             IconButton(
                 onClick = {
                     context.startActivity(
-                        android.content.Intent(context, Setting::class.java)
+                        Intent(context, DataControlsActivity::class.java)
                     )
                 },
                 modifier = Modifier
@@ -177,16 +184,29 @@ fun EchoTopBar() {
                     .clip(CircleShape)
                     .background(Color.White.copy(alpha = 22f))
             ) {
-                Icon(painter = painterResource(id = R.drawable.mes), contentDescription = null)
+                Icon(
+                    painter = painterResource(id = R.drawable.mes),
+                    contentDescription = "Data Controls",
+                    tint = Color.Black,
+                    modifier = Modifier.size(20.dp)
+                )
             }
 
             Spacer(Modifier.weight(1f))
-            Text("Wellcom to Echo", fontSize = 16.sp)
+
+            // TITLE
+            Text(
+                text = "Welcome to Echo",
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Medium
+            )
+
             Spacer(Modifier.weight(1f))
 
+            // RIGHT USER AVATAR (unchanged)
             UserAvatar(size = 40.dp) {
                 context.startActivity(
-                    android.content.Intent(context, Setting::class.java)
+                    Intent(context, Setting::class.java)
                 )
             }
 
@@ -194,6 +214,7 @@ fun EchoTopBar() {
         }
     }
 }
+
 
 // ---------------- ROOT ----------------
 @Composable
