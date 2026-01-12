@@ -562,22 +562,29 @@ fun ChatScreen(model: GenerativeModel) {
                 }
             }
 
-            // ===================== IMAGE PREVIEW =====================
+            // ===================== MODERN IMAGE PREVIEW =====================
             if (selectedImageUri != null) {
                 Box(
-                    Modifier.padding(start = 20.dp, bottom = 8.dp)
+                    modifier = Modifier
+                        .padding(start = 20.dp, bottom = 10.dp)
                 ) {
                     AsyncImage(
                         model = selectedImageUri,
                         contentDescription = null,
                         modifier = Modifier
                             .size(80.dp)
-                            .clip(RoundedCornerShape(12.dp))
-                            .border(2.dp, Color.White),
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(Color.Black.copy(alpha = 0.04f))
+                            .border(
+                                width = 1.dp,
+                                color = Color.Black.copy(alpha = 0.08f),
+                                shape = RoundedCornerShape(16.dp)
+                            ),
                         contentScale = ContentScale.Crop
                     )
                 }
             }
+
 
             // ===================== INPUT BAR =====================
             InputBar(
