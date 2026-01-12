@@ -31,7 +31,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -45,7 +44,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsControllerCompat
-import kotlinx.coroutines.launch
 import android.graphics.Color as SysColor
 
 class MainActivity : ComponentActivity() {
@@ -56,6 +54,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        // ---------- SYSTEM UI (UNCHANGED) ----------
         WindowCompat.setDecorFitsSystemWindows(window, false)
         window.statusBarColor = SysColor.TRANSPARENT
         window.navigationBarColor = SysColor.TRANSPARENT
@@ -69,6 +68,7 @@ class MainActivity : ComponentActivity() {
             isAppearanceLightNavigationBars = true
         }
 
+        // ---------- PREFS ----------
         prefs = getSharedPreferences("echo_prefs", MODE_PRIVATE)
 
         if (prefs.getBoolean("logged_in", false)) {
@@ -77,37 +77,30 @@ class MainActivity : ComponentActivity() {
             return
         }
 
-        googleAuthClient = GoogleAuthClient(this)
+        // ---------- GOOGLE AUTH (FIXED LOGIC) ----------
+        googleAuthClient = GoogleAuthClient(this) { success ->
+            if (success) {
+                prefs.edit().putBoolean("logged_in", true).apply()
+                startActivity(Intent(this, Ai::class.java))
+                finish()
+            }
+        }
 
+        // ---------- UI (UNCHANGED) ----------
         setContent {
             MaterialTheme {
                 BlackLoginUI(
-                    googleAuthClient = googleAuthClient,
-                    onLoginSuccess = {
-                        prefs.edit().putBoolean("logged_in", true).apply()
-                        startActivity(Intent(this, Ai::class.java))
-                        finish()
-                    }
+                    googleAuthClient = googleAuthClient
                 )
             }
-        }
-    }
-
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == GoogleAuthClient.SIGN_IN_REQUEST_CODE) {
-            ResultHolder.callback?.invoke(data)
-            ResultHolder.callback = null
         }
     }
 }
 
 @Composable
 fun BlackLoginUI(
-    googleAuthClient: GoogleAuthClient,
-    onLoginSuccess: () -> Unit
+    googleAuthClient: GoogleAuthClient
 ) {
-    val scope = rememberCoroutineScope()
     var loading by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf("") }
 
@@ -165,17 +158,11 @@ fun BlackLoginUI(
                             .clickable {
                                 loading = true
                                 error = ""
-                                scope.launch {
-                                    val success = googleAuthClient.signIn()
-                                    loading = false
-                                    if (success) onLoginSuccess()
-                                    else error = "Access Denied login"
-                                }
+                                googleAuthClient.signIn()
                             },
                         contentAlignment = Alignment.Center
                     ) {
 
-                        // 🔹 ONLY ADDITION: ICON + TEXT ROW
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.Center
