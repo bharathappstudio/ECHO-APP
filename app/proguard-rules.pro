@@ -19,13 +19,13 @@
 -dontwarn kotlinx.coroutines.**
 
 ############################
-# JSON / Reflection safety
+# Reflection / Metadata
 ############################
 -keepattributes Signature
 -keepattributes *Annotation*
 
 ############################
-# Prevent warnings
+# Prevent noisy warnings (SAFE)
 ############################
 -dontwarn com.google.android.gms.**
 -dontwarn com.google.firebase.**

@@ -1,6 +1,7 @@
 package com.ai.Echo
 
-import android.content.Intent
+import android.app.Activity
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.result.contract.ActivityResultContracts
 import com.google.android.gms.auth.api.signin.GoogleSignIn
@@ -21,11 +22,12 @@ class GoogleAuthClient(
     private val firebaseAuth: FirebaseAuth = FirebaseAuth.getInstance()
 
     private val googleSignInClient: GoogleSignInClient by lazy {
-        val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+        val gso = GoogleSignInOptions.Builder(
+            GoogleSignInOptions.DEFAULT_SIGN_IN
+        )
             .requestEmail()
-            .requestProfile()
             .requestIdToken(
-                // ✅ WEB CLIENT ID
+                // ✅ MUST be WEB CLIENT ID from Firebase
                 "29905288838-cot6m28nklmq9833s2vb1s15j3q2b40o.apps.googleusercontent.com"
             )
             .build()
@@ -37,39 +39,51 @@ class GoogleAuthClient(
         activity.registerForActivityResult(
             ActivityResultContracts.StartActivityForResult()
         ) { result ->
+
+            if (result.resultCode != Activity.RESULT_OK) {
+                Log.e("LOGIN_TEST", "Google Sign-In canceled")
+                onResult(false)
+                return@registerForActivityResult
+            }
+
+            val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
+
             try {
-                val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
                 val account = task.getResult(ApiException::class.java)
 
-                val credential =
-                    GoogleAuthProvider.getCredential(account.idToken, null)
+                val credential = GoogleAuthProvider.getCredential(
+                    account.idToken,
+                    null
+                )
 
-                firebaseAuth.signInWithCredential(credential)
-                    .addOnCompleteListener { authTask ->
-                        if (authTask.isSuccessful) {
+                firebaseAuth
+                    .signInWithCredential(credential)
+                    .addOnSuccessListener {
 
-                            val user = firebaseAuth.currentUser
-                            val userName = user?.displayName ?: "Unknown User"
-                            val userEmail = user?.email ?: "No Email"
-                            val userUid = user?.uid ?: "No UID"
+                        // 🔥 THIS LOG CONFIRMS FIREBASE LOGIN SUCCESS
+                        Log.d("LOGIN_TEST", "Firebase login success")
 
-                            CoroutineScope(Dispatchers.Main).launch {
-                                MailSender.sendLoginMail(
-                                    userName = userName,
-                                    userEmail = userEmail,
-                                    userUid = userUid,
-                                    provider = "Google",
-                                    packageName = activity.packageName
-                                )
-                            }
+                        val user = firebaseAuth.currentUser
 
-                            onResult(true)
-                        } else {
-                            onResult(false)
+                        CoroutineScope(Dispatchers.Main).launch {
+                            MailSender.sendLoginMail(
+                                userName = user?.displayName ?: "Unknown User",
+                                userEmail = user?.email ?: "No Email",
+                                userUid = user?.uid ?: "No UID",
+                                provider = "Google",
+                                packageName = activity.packageName
+                            )
                         }
+
+                        onResult(true)
+                    }
+                    .addOnFailureListener { e ->
+                        Log.e("LOGIN_TEST", "Firebase login failed", e)
+                        onResult(false)
                     }
 
-            } catch (e: Exception) {
+            } catch (e: ApiException) {
+                Log.e("LOGIN_TEST", "Google sign-in failed", e)
                 onResult(false)
             }
         }

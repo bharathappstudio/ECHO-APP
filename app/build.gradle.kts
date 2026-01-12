@@ -18,11 +18,17 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            // ✅ REQUIRED for stable release auth
+            isMinifyEnabled = true
+            isShrinkResources = true
+
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+        }
+        debug {
+            isMinifyEnabled = false
         }
     }
 
@@ -43,7 +49,7 @@ android {
         kotlinCompilerExtensionVersion = "1.5.15"
     }
 
-    // ✅ FIX FOR JavaMail META-INF DUPLICATE FILE ERROR
+    // ✅ JavaMail META-INF duplicate fix
     packaging {
         resources {
             excludes += setOf(
@@ -71,36 +77,32 @@ dependencies {
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material3:material3")
 
-    // ---------------- Coil (Images / Avatar) ----------------
+    // ---------------- Coil ----------------
     implementation("io.coil-kt:coil-compose:2.6.0")
 
-    // ---------------- Google Sign-In ----------------
-    implementation("com.google.android.gms:play-services-auth:21.0.1")
+    // ---------------- Google Sign-In (FIXED VERSION) ----------------
+    implementation("com.google.android.gms:play-services-auth:21.1.1")
 
-    // ---------------- Credential Manager (STABLE) ----------------
+    // ---------------- Credential Manager ----------------
     implementation("androidx.credentials:credentials:1.3.0")
     implementation("androidx.credentials:credentials-play-services-auth:1.3.0")
     implementation("com.google.android.libraries.identity.googleid:googleid:1.1.1")
 
-    // ---------------- Firebase ----------------
+    // ---------------- Firebase (SINGLE BOM) ----------------
     implementation(platform("com.google.firebase:firebase-bom:33.7.0"))
     implementation("com.google.firebase:firebase-auth")
+    implementation("com.google.firebase:firebase-database")
 
     // ---------------- Networking / Coroutines ----------------
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0")
 
-    // ---------------- Gemini / Generative AI ----------------
+    // ---------------- Gemini AI ----------------
     implementation("com.google.ai.client.generativeai:generativeai:0.9.0")
 
-    // ---------------- Email (JavaMail) ----------------
+    // ---------------- JavaMail ----------------
     implementation("com.sun.mail:android-mail:1.6.7")
     implementation("com.sun.mail:android-activation:1.6.7")
-
-    // ---------------- Firebase ----------------
-    implementation(platform("com.google.firebase:firebase-bom:33.7.0"))
-    implementation("com.google.firebase:firebase-auth")
-    implementation("com.google.firebase:firebase-database")
 
     // ---------------- Testing ----------------
     testImplementation("junit:junit:4.13.2")
@@ -113,4 +115,3 @@ dependencies {
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
 }
-
