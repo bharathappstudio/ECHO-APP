@@ -28,11 +28,8 @@ import androidx.compose.foundation.*
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.*
-import androidx.compose.foundation.shape.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.ui.*
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
@@ -41,7 +38,6 @@ import androidx.compose.ui.platform.*
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.*
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.*
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsControllerCompat
@@ -59,9 +55,7 @@ import com.google.firebase.database.*
 import com.google.firebase.database.IgnoreExtraProperties
 
 // ===================== COROUTINES =====================
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import java.io.InputStream
 
 // ===================== CORE =====================
 import androidx.compose.runtime.Composable
@@ -85,10 +79,6 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 
-// ===================== GRAPHICS =====================
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.graphicsLayer
-
 // ===================== ALIGNMENT =====================
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -99,10 +89,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
-
-// ===================== RESOURCES =====================
-import androidx.compose.ui.res.painterResource
-
 // ===================== UNITS =====================
 import androidx.compose.ui.unit.dp
 
@@ -265,7 +251,7 @@ fun UserAvatar(size: Dp = 40.dp, onClick: () -> Unit) {
 }
 
 // ======================================================
-// TOP BAR
+// MODERN GLASS TOP BAR (NO ERRORS • CLEAN • 2026 STYLE)
 // ======================================================
 @Composable
 fun EchoTopBar() {
@@ -280,13 +266,19 @@ fun EchoTopBar() {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(58.dp)
-                .clip(RoundedCornerShape(40.dp))
-                .background(Color(0xFFFFF8E1).copy(alpha = 0.50f))
-                .border(1.dp, Color.White.copy(alpha = 0.35f), RoundedCornerShape(40.dp)),
+                .height(56.dp)
+                .clip(RoundedCornerShape(28.dp))
+                .background(Color.White.copy(alpha = 0.55f))
+                .border(
+                    1.dp,
+                    Color.White.copy(alpha = 0.30f),
+                    RoundedCornerShape(28.dp)
+                )
+                .padding(horizontal = 10.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
 
+            // LEFT ACTION
             IconButton(
                 onClick = {
                     context.startActivity(
@@ -294,34 +286,36 @@ fun EchoTopBar() {
                     )
                 },
                 modifier = Modifier
-                    .padding(start = 8.dp)
                     .size(40.dp)
                     .clip(CircleShape)
-                    .background(Color.White.copy(alpha = 22f))
+                    .background(Color.White.copy(alpha = 0.30f))
             ) {
                 Icon(
                     painter = painterResource(id = R.drawable.mes),
                     contentDescription = "Data Controls",
-                    tint = Color.Black,
+                    tint = Color.Black.copy(alpha = 0.85f),
                     modifier = Modifier.size(20.dp)
                 )
             }
 
             Spacer(Modifier.weight(1f))
 
+            // TITLE
             Text(
-                text = "Welcome to Echo",
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Medium
+                text = "Echo Ai",
+                fontSize = 17.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = Color.Black
             )
 
             Spacer(Modifier.weight(1f))
 
-            UserAvatar(size = 40.dp) {
-                context.startActivity(Intent(context, Setting::class.java))
+            // USER AVATAR
+            UserAvatar(size = 38.dp) {
+                context.startActivity(
+                    Intent(context, Setting::class.java)
+                )
             }
-
-            Spacer(Modifier.width(8.dp))
         }
     }
 }
@@ -332,11 +326,11 @@ fun EchoTopBar() {
 @Composable
 fun ChatApp() {
 
-    // Gemini AI model
+    // Gemin/home/asus-s14/Downloadsi AI model
     val model = remember {
         GenerativeModel(
             modelName = "gemini-3-flash-preview",
-            apiKey = "AIzaSyDMIG16pyCGGD5dylYPv86o8ENdd-scGMM"
+            apiKey = "AIzaSyAmMIAQN45yqlyIPiPoGTqs9egvP7h7204"
         )
     }
 
@@ -727,7 +721,7 @@ fun ChatBubble(
 
 
 // ======================================================
-// GLASS STYLE INPUT BAR (NO BLUR • CLEAN)
+// MODERN CLEAN INPUT BAR (NO BLUR • NO ERRORS)
 // ======================================================
 @Composable
 fun InputBar(
@@ -739,47 +733,52 @@ fun InputBar(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 12.dp, vertical = 8.dp)
-            .clip(RoundedCornerShape(26.dp))
-            .background(
-                Color.White.copy(alpha = 0.50f) // glass without blur
-            )
+            .padding(horizontal = 14.dp, vertical = 10.dp)
+            .clip(RoundedCornerShape(28.dp))
+            .background(Color.White.copy(alpha = 0.50f))
             .border(
-                width = 1.dp,
-                color = Color.White.copy(alpha = 0.35f),
-                shape = RoundedCornerShape(26.dp)
+                1.dp,
+                Color.White.copy(alpha = 0.25f),
+                RoundedCornerShape(28.dp)
             )
-            .padding(horizontal = 14.dp, vertical = 8.dp),
+            .padding(horizontal = 14.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
 
-        // IMAGE ICON
+        // MODERN IMAGE BUTTON
         IconButton(
             onClick = onImageClick,
             modifier = Modifier
-                .size(38.dp)
+                .size(42.dp)
                 .clip(CircleShape)
-                .background(Color.White.copy(alpha = 0.30f))
+                .background(
+                    Color.White.copy(alpha = 0.22f)
+                )
+                .border(
+                    width = 1.dp,
+                    color = Color.White.copy(alpha = 0.35f),
+                    shape = CircleShape
+                )
         ) {
             Icon(
-                painter = painterResource(id = R.drawable.mes),
+                painter = painterResource(id = R.drawable.file),
                 contentDescription = "Image",
-                tint = Color.Black
+                tint = Color.Black.copy(alpha = 0.85f),
+                modifier = Modifier.size(25.dp)
             )
         }
 
-        Spacer(modifier = Modifier.width(8.dp))
 
-        // TEXT FIELD
+        Spacer(Modifier.width(10.dp))
+
+        // TEXT FIELD (SAFE)
         TextField(
             value = text,
             onValueChange = onChange,
-            modifier = Modifier
-                .weight(1f)
-                .heightIn(min = 40.dp),
+            modifier = Modifier.weight(1f),
             placeholder = {
                 Text(
-                    text = "Ask Echo…",
+                    "Ask Echo…",
                     color = Color.Black.copy(alpha = 0.45f)
                 )
             },
@@ -787,36 +786,38 @@ fun InputBar(
             colors = TextFieldDefaults.colors(
                 focusedContainerColor = Color.Transparent,
                 unfocusedContainerColor = Color.Transparent,
+                disabledContainerColor = Color.Transparent,
                 focusedIndicatorColor = Color.Transparent,
                 unfocusedIndicatorColor = Color.Transparent,
                 cursorColor = Color.Black
             )
         )
 
-        Spacer(modifier = Modifier.width(8.dp))
+        Spacer(Modifier.width(10.dp))
 
         // SEND BUTTON
         IconButton(
             onClick = onSend,
             enabled = text.isNotBlank(),
             modifier = Modifier
-                .size(44.dp)
+                .size(46.dp)
                 .clip(CircleShape)
                 .background(
                     if (text.isNotBlank())
-                        Color.White.copy(alpha = 0.45f)
+                        Color.Black
                     else
-                        Color.White.copy(alpha = 0.20f)
+                        Color.Black.copy(alpha = 0.25f)
                 )
         ) {
             Icon(
-                painter = painterResource(id = R.drawable.send),
+                painter = painterResource(R.drawable.send),
                 contentDescription = "Send",
-                tint = Color.Black
+                tint = Color.White
             )
         }
     }
 }
+
 
 
 
