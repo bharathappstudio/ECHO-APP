@@ -220,7 +220,7 @@ fun SettingUI(onLogout: () -> Unit) {
         SettingRow("Manage memory") {}
         SettingRow("User") {}
         SettingRow("Give feedback") {
-            context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("mailto:jarvisvbharath11@gmail.com")))
+            context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://cal.com/ui-studio13")))
         }
         SettingRow("Call to Developer") {
             context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("tel:+917094589909")))

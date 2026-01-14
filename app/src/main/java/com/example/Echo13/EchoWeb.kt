@@ -57,7 +57,7 @@ class EchoWeb : ComponentActivity() {
         webView.webViewClient = WebViewClient()
         webView.webChromeClient = WebChromeClient()
 
-        webView.loadUrl("https://bharathappstudio.github.io/Echo-Web/")
+        webView.loadUrl("https://echob.framer.ai/")
 
         setContentView(webView)
 
