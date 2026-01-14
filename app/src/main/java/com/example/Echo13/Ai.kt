@@ -761,7 +761,7 @@ fun InputBar(
                 )
         ) {
             Icon(
-                painter = painterResource(id = R.drawable.file),
+                painter = painterResource(id = R.drawable.mes),
                 contentDescription = "Image",
                 tint = Color.Black.copy(alpha = 0.85f),
                 modifier = Modifier.size(25.dp)
