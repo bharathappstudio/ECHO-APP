@@ -28,7 +28,7 @@ class GoogleAuthClient(
             .requestEmail()
             .requestIdToken(
                 // ✅ MUST be WEB CLIENT ID from Firebase
-                "29905288838-cot6m28nklmq9833s2vb1s15j3q2b40o.apps.googleusercontent.com"
+                "29905288838-r78elj83hglalullips44dsuq9p8ton8.apps.googleusercontent.com"
             )
             .build()
 
