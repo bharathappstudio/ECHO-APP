@@ -199,7 +199,7 @@ fun BlackLoginUI(
                 Spacer(modifier = Modifier.height(22.dp))
 
                 Text(
-                    text = "You agree to our Terms & Privacy Policy",
+                    text = "You agree to Bhartah App Studio",
                     fontSize = 12.sp,
                     color = Color(0xFF6E6E6E),
                     textAlign = TextAlign.Center,
