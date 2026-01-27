@@ -48,7 +48,7 @@
             android:name=".Setting"
             android:exported="false" />
 
-        <!-- DATA CONTROLS (✅ ADDED) -->
+        <!-- DATA CONTROLS -->
         <activity
             android:name=".DataControlsActivity"
             android:exported="false" />
@@ -58,9 +58,14 @@
             android:name=".PermissionsActivity"
             android:exported="false" />
 
-        <!-- ECHO WEB (WebView UI) -->
+        <!-- ECHO WEB -->
         <activity
             android:name=".EchoWeb"
+            android:exported="false" />
+
+        <!-- ✅ ONLY ADD: echo.kt -->
+        <activity
+            android:name=".Echo"
             android:exported="false" />
 
     </application>

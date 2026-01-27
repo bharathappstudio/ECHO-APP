@@ -56,7 +56,6 @@ class Setting : ComponentActivity() {
 
         prefs = getSharedPreferences("echo_prefs", MODE_PRIVATE)
 
-        // ✅ Google Sign-In client (REQUIRED for logout)
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
             .requestEmail()
             .build()
@@ -67,16 +66,9 @@ class Setting : ComponentActivity() {
             MaterialTheme {
                 SettingUI(
                     onLogout = {
-                        // ✅ 1. Firebase logout
                         FirebaseAuth.getInstance().signOut()
-
-                        // ✅ 2. Google logout (THIS WAS MISSING)
                         googleSignInClient.signOut().addOnCompleteListener {
-
-                            // ✅ 3. Clear local data
                             prefs.edit().clear().apply()
-
-                            // ✅ 4. Restart app clean
                             startActivity(
                                 Intent(this, MainActivity::class.java).apply {
                                     flags =
@@ -92,7 +84,6 @@ class Setting : ComponentActivity() {
         }
     }
 }
-
 
 @Composable
 fun SettingUI(onLogout: () -> Unit) {
@@ -177,7 +168,6 @@ fun SettingUI(onLogout: () -> Unit) {
             label = ""
         )
 
-        // ✅ ONLY CHANGE: clickable added (NO UI change)
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -187,7 +177,7 @@ fun SettingUI(onLogout: () -> Unit) {
                 .background(Color(0xFFFFECB3))
                 .clickable {
                     context.startActivity(
-                        Intent(context, EchoWeb::class.java)
+                        Intent(context, Echo::class.java)
                     )
                 }
         ) {
@@ -212,7 +202,15 @@ fun SettingUI(onLogout: () -> Unit) {
 
         Spacer(Modifier.height(24.dp))
 
-        SettingRow("Echo App Realtime Database", true) {}
+        SettingRow(
+            "Echo App Realtime Database",
+            true
+        ) {
+            context.startActivity(
+                Intent(context, Echo::class.java)
+            )
+        }
+
         SettingRow("Permissions") {
             context.startActivity(Intent(context, PermissionsActivity::class.java))
         }
@@ -220,13 +218,19 @@ fun SettingUI(onLogout: () -> Unit) {
         SettingRow("Manage memory") {}
         SettingRow("User") {}
         SettingRow("Give feedback") {
-            context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://cal.com/ui-studio13")))
+            context.startActivity(
+                Intent(Intent.ACTION_VIEW, Uri.parse("https://cal.com/ui-studio13"))
+            )
         }
         SettingRow("Call to Developer") {
-            context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("tel:+917094589909")))
+            context.startActivity(
+                Intent(Intent.ACTION_VIEW, Uri.parse("tel:+917094589909"))
+            )
         }
         SettingRow("About") {
-            context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/bharathappstudio")))
+            context.startActivity(
+                Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/bharathappstudio"))
+            )
         }
 
         Spacer(Modifier.height(24.dp))
