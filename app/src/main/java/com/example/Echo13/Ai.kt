@@ -2,18 +2,18 @@
 package com.ai.Echo
 
 // ===================== ANDROID IMPORTS =====================
-import android.content.ClipData                 // For copying text
-import android.content.ClipboardManager         // Clipboard service
-import android.content.Context                  // Context reference
-import android.content.Intent                   // Screen navigation
-import android.graphics.BitmapFactory           // Decode image stream
-import android.net.ConnectivityManager          // Network manager
-import android.net.NetworkCapabilities          // Internet capability
-import android.net.Uri                          // Image URI
-import android.os.Build                         // Android version check
-import android.os.Bundle                        // Activity lifecycle
-import android.view.WindowManager               // Fullscreen flags
-import android.graphics.Color as SysColor       // Rename to avoid Compose Color conflict
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
+import android.content.Intent
+import android.graphics.BitmapFactory
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
+import android.net.Uri
+import android.os.Build
+import android.os.Bundle
+import android.view.WindowManager
+import android.graphics.Color as SysColor
 
 // ===================== ACTIVITY + COMPOSE =====================
 import androidx.activity.ComponentActivity
@@ -41,6 +41,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.*
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsControllerCompat
+
+// ===================== 🔧 SAFE EXPLICIT TEXT IMPORTS (FIX) =====================
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 
 // ===================== IMAGE LOADING =====================
 import coil.compose.AsyncImage
@@ -89,6 +94,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
+
 // ===================== UNITS =====================
 import androidx.compose.ui.unit.dp
 
@@ -97,17 +103,13 @@ import androidx.compose.ui.unit.dp
 // INTERNET CHECK FUNCTION
 // ======================================================
 fun isInternetAvailable(context: Context): Boolean {
-
-    // Get connectivity service
     val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
 
     return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-        // Android 6+
         val network = cm.activeNetwork ?: return false
         val caps = cm.getNetworkCapabilities(network) ?: return false
         caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
     } else {
-        // Older Android
         @Suppress("DEPRECATION")
         cm.activeNetworkInfo?.isConnected == true
     }
@@ -118,11 +120,11 @@ fun isInternetAvailable(context: Context): Boolean {
 // ======================================================
 @IgnoreExtraProperties
 data class ChatMessage(
-    var id: String = "",            // Firebase message key
-    var text: String = "",          // Message content
-    var isUser: Boolean = false,    // User or AI message
-    var imageUri: String? = null,   // Optional image
-    var timestamp: Long = 0L        // Message time
+    var id: String = "",
+    var text: String = "",
+    var isUser: Boolean = false,
+    var imageUri: String? = null,
+    var timestamp: Long = 0L
 )
 
 // ======================================================
@@ -131,23 +133,19 @@ data class ChatMessage(
 @Composable
 fun parseMarkdown(text: String): AnnotatedString {
     return buildAnnotatedString {
-
-        // Split text by **
         val parts = text.split("**")
-
         parts.forEachIndexed { index, part ->
             if (index % 2 == 1) {
-                // Bold text
-                withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
                     append(part)
                 }
             } else {
-                // Normal text
                 append(part)
             }
         }
     }
 }
+
 
 // ======================================================
 // MAIN ACTIVITY
@@ -330,7 +328,7 @@ fun ChatApp() {
     val model = remember {
         GenerativeModel(
             modelName = "gemini-3-flash-preview",
-            apiKey = "AIzaSyAmMIAQN45yqlyIPiPoGTqs9egvP7h7204"
+            apiKey = "AIzaSyDqeGpmEaLZB--PGrV65xlaUk8NikLvVVc"
         )
     }
 

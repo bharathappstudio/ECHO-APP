@@ -71,17 +71,23 @@ class MainActivity : ComponentActivity() {
         // ---------- PREFS ----------
         prefs = getSharedPreferences("echo_prefs", MODE_PRIVATE)
 
+        // ✅ FIX: CLEAR BACKSTACK WHEN ALREADY LOGGED IN
         if (prefs.getBoolean("logged_in", false)) {
-            startActivity(Intent(this, Ai::class.java))
+            val intent = Intent(this, Ai::class.java)
+            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            startActivity(intent)
             finish()
             return
         }
 
-        // ---------- GOOGLE AUTH (FIXED LOGIC) ----------
+        // ---------- GOOGLE AUTH (LOGIC FIX ONLY) ----------
         googleAuthClient = GoogleAuthClient(this) { success ->
             if (success) {
                 prefs.edit().putBoolean("logged_in", true).apply()
-                startActivity(Intent(this, Ai::class.java))
+
+                val intent = Intent(this, Ai::class.java)
+                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                startActivity(intent)
                 finish()
             }
         }
@@ -96,6 +102,7 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
+
 
 @Composable
 fun BlackLoginUI(
@@ -199,7 +206,7 @@ fun BlackLoginUI(
                 Spacer(modifier = Modifier.height(22.dp))
 
                 Text(
-                    text = "You agree to Bhartah App Studio",
+                    text = "You agree to Bharath-App-studio-App",
                     fontSize = 12.sp,
                     color = Color(0xFF6E6E6E),
                     textAlign = TextAlign.Center,
