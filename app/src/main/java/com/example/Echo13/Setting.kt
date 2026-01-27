@@ -168,6 +168,7 @@ fun SettingUI(onLogout: () -> Unit) {
             label = ""
         )
 
+        // ✅ FIX 1: Animated card → EchoWeb
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -177,7 +178,7 @@ fun SettingUI(onLogout: () -> Unit) {
                 .background(Color(0xFFFFECB3))
                 .clickable {
                     context.startActivity(
-                        Intent(context, Echo::class.java)
+                        Intent(context, EchoWeb::class.java)
                     )
                 }
         ) {
@@ -202,6 +203,7 @@ fun SettingUI(onLogout: () -> Unit) {
 
         Spacer(Modifier.height(24.dp))
 
+        // ✅ FIX 2: Realtime DB → Echo.kt
         SettingRow(
             "Echo App Realtime Database",
             true
