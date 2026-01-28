@@ -24,6 +24,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 // ===================== COMPOSE UI =====================
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
@@ -97,7 +98,14 @@ import androidx.compose.material3.TextFieldDefaults
 
 // ===================== UNITS =====================
 import androidx.compose.ui.unit.dp
-
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.draw.blur
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.sp
+// ===================== ADDED FOR iOS ANIMATION =====================
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.animation.core.FastOutSlowInEasing
+// ===================== ======================== =====================
 
 // ======================================================
 // INTERNET CHECK FUNCTION
@@ -155,26 +163,21 @@ class Ai : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Allow content behind system bars
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
-        // Transparent system bars
         window.statusBarColor = SysColor.TRANSPARENT
         window.navigationBarColor = SysColor.TRANSPARENT
 
-        // Fullscreen layout
         window.setFlags(
             WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
             WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
         )
 
-        // Light icons
         WindowInsetsControllerCompat(window, window.decorView).apply {
             isAppearanceLightStatusBars = true
             isAppearanceLightNavigationBars = true
         }
 
-        // Set Compose UI
         setContent {
             MaterialTheme {
                 ChatApp()
@@ -249,7 +252,7 @@ fun UserAvatar(size: Dp = 40.dp, onClick: () -> Unit) {
 }
 
 // ======================================================
-// MODERN GLASS TOP BAR (NO ERRORS • CLEAN • 2026 STYLE)
+// TOP BAR
 // ======================================================
 @Composable
 fun EchoTopBar() {
@@ -259,24 +262,43 @@ fun EchoTopBar() {
         modifier = Modifier
             .fillMaxWidth()
             .statusBarsPadding()
-            .padding(horizontal = 14.dp, vertical = 8.dp)
+            .padding(horizontal = 8.dp, vertical = 10.dp)
     ) {
+
+        Box(
+            modifier = Modifier
+                .matchParentSize()
+                .clip(RoundedCornerShape(30.dp))
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            Color.White.copy(alpha = 0.35f),
+                            Color.White.copy(alpha = 0.15f)
+                        )
+                    )
+                )
+                .blur(15.dp)
+        )
+
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(56.dp)
-                .clip(RoundedCornerShape(28.dp))
-                .background(Color.White.copy(alpha = 0.55f))
+                .height(60.dp)
+                .clip(RoundedCornerShape(30.dp))
                 .border(
                     1.dp,
-                    Color.White.copy(alpha = 0.30f),
-                    RoundedCornerShape(28.dp)
+                    Brush.linearGradient(
+                        colors = listOf(
+                            Color.White.copy(alpha = 0.45f),
+                            Color.White.copy(alpha = 0.12f)
+                        )
+                    ),
+                    RoundedCornerShape(30.dp)
                 )
-                .padding(horizontal = 10.dp),
+                .padding(horizontal = 14.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
 
-            // LEFT ACTION
             IconButton(
                 onClick = {
                     context.startActivity(
@@ -284,32 +306,39 @@ fun EchoTopBar() {
                     )
                 },
                 modifier = Modifier
-                    .size(40.dp)
+                    .size(42.dp)
                     .clip(CircleShape)
-                    .background(Color.White.copy(alpha = 0.30f))
+                    .background(Color.White.copy(alpha = 1.0f))
             ) {
                 Icon(
                     painter = painterResource(id = R.drawable.mes),
                     contentDescription = "Data Controls",
-                    tint = Color.Black.copy(alpha = 0.85f),
-                    modifier = Modifier.size(20.dp)
+                    tint = Color.Black.copy(alpha = 0.9f),
+                    modifier = Modifier.size(22.dp)
                 )
             }
 
             Spacer(Modifier.weight(1f))
 
-            // TITLE
-            Text(
-                text = "Echo Ai",
-                fontSize = 17.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = Color.Black
-            )
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(
+                    text = "Echo AI",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = Color.Black.copy(alpha = 0.92f),
+                    letterSpacing = 0.6.sp
+                )
+                Text(
+                    text = "Bharath App Studio",
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = Color.Black.copy(alpha = 0.55f)
+                )
+            }
 
             Spacer(Modifier.weight(1f))
 
-            // USER AVATAR
-            UserAvatar(size = 38.dp) {
+            UserAvatar(size = 40.dp) {
                 context.startActivity(
                     Intent(context, Setting::class.java)
                 )
@@ -318,13 +347,13 @@ fun EchoTopBar() {
     }
 }
 
+
 // ======================================================
 // CHAT APP ROOT
 // ======================================================
 @Composable
 fun ChatApp() {
 
-    // Gemin/home/asus-s14/Downloadsi AI model
     val model = remember {
         GenerativeModel(
             modelName = "gemini-3-flash-preview",
@@ -341,6 +370,75 @@ fun ChatApp() {
     }
 }
 
+// ======================================================
+// THINKING ANIMATION COMPONENT (iOS STYLE)
+// ======================================================
+@Composable
+fun ThinkingAnimation() {
+    val infiniteTransition = rememberInfiniteTransition(label = "dots")
+
+    // Function to create sequential bounce for each dot
+    @Composable
+    fun animateDot(delay: Int): Float {
+        val anim by infiniteTransition.animateFloat(
+            initialValue = 0f,
+            targetValue = -8f, // Bounce height
+            animationSpec = infiniteRepeatable(
+                animation = weightlessEasingTween(delay),
+                repeatMode = RepeatMode.Reverse
+            ), label = ""
+        )
+        return anim
+    }
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        horizontalArrangement = Arrangement.Start
+    ) {
+        Box(
+            modifier = Modifier
+                .clip(RoundedCornerShape(20.dp)) // iOS style more rounded
+                .background(Color(0xFFFFECB3).copy(alpha = 0.45f))
+                .border(
+                    0.5.dp,
+                    Color.White.copy(alpha = 0.40f),
+                    RoundedCornerShape(20.dp)
+                )
+                .padding(horizontal = 16.dp, vertical = 14.dp)
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(5.dp)
+            ) {
+                // Three iOS-style dots
+                Dot(animateDot(0))
+                Dot(animateDot(150))
+                Dot(animateDot(300))
+            }
+        }
+    }
+}
+
+@Composable
+fun Dot(offsetY: Float) {
+    Box(
+        modifier = Modifier
+            .graphicsLayer(translationY = offsetY)
+            .size(7.dp)
+            .clip(CircleShape)
+            .background(Color.Black.copy(alpha = 0.6f))
+    )
+}
+
+// Helper for iOS-like physics
+fun weightlessEasingTween(delay: Int) = tween<Float>(
+    durationMillis = 400,
+    delayMillis = delay,
+    easing = FastOutSlowInEasing
+)
+
 
 // ======================================================
 // MAIN CHAT SCREEN (LOGIC + UI)
@@ -348,104 +446,59 @@ fun ChatApp() {
 @Composable
 fun ChatScreen(model: GenerativeModel) {
 
-    // Get current Android context
     val context = LocalContext.current
-
-    // Keyboard controller (hide keyboard after send)
     val keyboard = LocalSoftwareKeyboardController.current
-
-    // Coroutine scope for async work
     val scope = rememberCoroutineScope()
-
-    // LazyColumn scroll state
     val listState = rememberLazyListState()
-
-    // Get logged-in Firebase user ID
     val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return
 
-    // Firebase database reference for user's chats
     val dbRef = FirebaseDatabase.getInstance()
         .reference
         .child("users")
         .child(uid)
         .child("chats")
 
-    // Chat messages list (Compose observable)
     val messages = remember { mutableStateListOf<ChatMessage>() }
-
-    // User input text
     var input by remember { mutableStateOf("") }
-
-    // Loading state (disable send while AI responds)
     var loading by remember { mutableStateOf(false) }
-
-    // Message ID selected for copy/delete
     var deleteTargetId by remember { mutableStateOf<String?>(null) }
-
-    // Selected image URI
     var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
 
-    // Image picker launcher
     val imagePicker =
         rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
             selectedImageUri = uri
         }
 
-    // ======================================================
-    // LISTEN TO FIREBASE CHAT CHANGES
-    // ======================================================
     LaunchedEffect(Unit) {
         dbRef.addValueEventListener(object : ValueEventListener {
-
-            // Called when DB data changes
             override fun onDataChange(s: DataSnapshot) {
-
-                // Clear current messages
                 messages.clear()
-
-                // Convert Firebase data to ChatMessage list
                 s.children
                     .mapNotNull { it.getValue(ChatMessage::class.java) }
                     .forEach { messages.add(it) }
-
-                // Sort messages by time
                 messages.sortBy { it.timestamp }
             }
-
             override fun onCancelled(e: DatabaseError) {}
         })
     }
 
-    // ======================================================
-    // AUTO SCROLL TO LAST MESSAGE
-    // ======================================================
-    LaunchedEffect(messages.size) {
-        if (messages.isNotEmpty()) {
-            listState.scrollToItem(messages.lastIndex)
+    LaunchedEffect(messages.size, loading) {
+        if (messages.isNotEmpty() || loading) {
+            listState.animateScrollToItem(if (loading) messages.size else messages.lastIndex)
         }
     }
 
-    // ======================================================
-    // SEND MESSAGE FUNCTION
-    // ======================================================
     fun send() {
-
-        // Prevent empty send or double send
         if ((input.isBlank() && selectedImageUri == null) || loading) return
-
-        // Internet check
         if (!isInternetAvailable(context)) return
 
-        // Store values locally
         val question = input.trim()
         val uri = selectedImageUri
 
-        // Reset UI
         input = ""
         selectedImageUri = null
         keyboard?.hide()
 
-        // Push user message to Firebase
         val key = dbRef.push().key ?: return
         dbRef.child(key).setValue(
             ChatMessage(
@@ -457,34 +510,20 @@ fun ChatScreen(model: GenerativeModel) {
             )
         )
 
-        // Start loading
         loading = true
 
-        // Launch AI response
         scope.launch {
             try {
-
-                // If image exists, send image + text
                 val response = if (uri != null) {
-
-                    val bitmap =
-                        context.contentResolver
-                            .openInputStream(uri)
-                            .use { BitmapFactory.decodeStream(it) }
-
-                    model.generateContent(
-                        content {
-                            image(bitmap!!)
-                            text(question.ifBlank { "Analyze image" })
-                        }
-                    ).text
-
+                    val bitmap = context.contentResolver.openInputStream(uri).use { BitmapFactory.decodeStream(it) }
+                    model.generateContent(content {
+                        image(bitmap!!)
+                        text(question.ifBlank { "Analyze image" })
+                    }).text
                 } else {
-                    // Text only message
                     model.generateContent(question).text
                 }
 
-                // Push AI response to Firebase
                 val rKey = dbRef.push().key ?: ""
                 dbRef.child(rKey).setValue(
                     ChatMessage(
@@ -497,88 +536,56 @@ fun ChatScreen(model: GenerativeModel) {
                 )
 
             } catch (e: Exception) {
-
-                // Error message
                 val rKey = dbRef.push().key ?: ""
                 dbRef.child(rKey).setValue(
                     ChatMessage(
                         id = rKey,
                         text = "Error: ${e.message}",
                         isUser = false,
-                        imageUri = null,
                         timestamp = System.currentTimeMillis()
                     )
                 )
-
             } finally {
-                // Stop loading
                 loading = false
             }
         }
     }
 
-    // ======================================================
-    // MAIN CHAT UI
-    // ======================================================
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .imePadding() // Adjust for keyboard
-    ) {
-
-        // Show empty image when no chats
-        if (messages.isEmpty()) {
+    Box(modifier = Modifier.fillMaxSize().imePadding()) {
+        if (messages.isEmpty() && !loading) {
             EmptyChatImage()
         }
 
         Column {
-
-            // ===================== MESSAGE LIST =====================
             LazyColumn(
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(12.dp),
+                modifier = Modifier.weight(1f).padding(12.dp),
                 state = listState,
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 items(messages, key = { it.id }) { msg ->
-                    AnimatedVisibility(
-                        visible = true,
-                        enter = fadeIn()
-                    ) {
-                        ChatBubble(
-                            msg = msg,
-                            onLongPress = { deleteTargetId = msg.id }
-                        )
+                    AnimatedVisibility(visible = true, enter = fadeIn()) {
+                        ChatBubble(msg = msg, onLongPress = { deleteTargetId = msg.id })
+                    }
+                }
+
+                if (loading) {
+                    item {
+                        ThinkingAnimation()
                     }
                 }
             }
 
-            // ===================== MODERN IMAGE PREVIEW =====================
             if (selectedImageUri != null) {
-                Box(
-                    modifier = Modifier
-                        .padding(start = 20.dp, bottom = 10.dp)
-                ) {
+                Box(modifier = Modifier.padding(start = 20.dp, bottom = 10.dp)) {
                     AsyncImage(
                         model = selectedImageUri,
                         contentDescription = null,
-                        modifier = Modifier
-                            .size(80.dp)
-                            .clip(RoundedCornerShape(16.dp))
-                            .background(Color.Black.copy(alpha = 0.04f))
-                            .border(
-                                width = 1.dp,
-                                color = Color.Black.copy(alpha = 0.08f),
-                                shape = RoundedCornerShape(16.dp)
-                            ),
+                        modifier = Modifier.size(80.dp).clip(RoundedCornerShape(16.dp)).background(Color.Black.copy(alpha = 0.04f)).border(1.dp, Color.Black.copy(alpha = 0.08f), RoundedCornerShape(16.dp)),
                         contentScale = ContentScale.Crop
                     )
                 }
             }
 
-
-            // ===================== INPUT BAR =====================
             InputBar(
                 text = input,
                 onChange = { input = it },
@@ -588,125 +595,70 @@ fun ChatScreen(model: GenerativeModel) {
         }
     }
 
-    // ======================================================
-    // COPY / DELETE DIALOG
-    // ======================================================
     if (deleteTargetId != null) {
-
-        // Clipboard manager
-        val clipboard =
-            context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-
-        // Text to copy
-        val messageToCopy =
-            messages.firstOrNull { it.id == deleteTargetId }?.text ?: ""
+        val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        val messageToCopy = messages.firstOrNull { it.id == deleteTargetId }?.text ?: ""
 
         AlertDialog(
             onDismissRequest = { deleteTargetId = null },
             shape = RoundedCornerShape(20.dp),
             title = { Text("Message options") },
-
             confirmButton = {
-
-                // Copy button
-                TextButton(
-                    onClick = {
-                        clipboard.setPrimaryClip(
-                            ClipData.newPlainText("chat", messageToCopy)
-                        )
-                        deleteTargetId = null
-                    }
-                ) {
-                    Text("Copy")
-                }
-
-                // Delete button
-                TextButton(
-                    onClick = {
-                        dbRef.child(deleteTargetId!!).removeValue()
-                        deleteTargetId = null
-                    }
-                ) {
-                    Text("Delete", color = Color.Red)
-                }
+                TextButton(onClick = {
+                    clipboard.setPrimaryClip(ClipData.newPlainText("chat", messageToCopy))
+                    deleteTargetId = null
+                }) { Text("Copy") }
+                TextButton(onClick = {
+                    dbRef.child(deleteTargetId!!).removeValue()
+                    deleteTargetId = null
+                }) { Text("Delete", color = Color.Red) }
             }
         )
     }
 }
 
 // ======================================================
-// MODERN CHAT BUBBLE (USING YOUR OLD COLOR STYLE)
+// MODERN CHAT BUBBLE
 // ======================================================
 @Composable
-fun ChatBubble(
-    msg: ChatMessage,
-    onLongPress: () -> Unit
-) {
+fun ChatBubble(msg: ChatMessage, onLongPress: () -> Unit) {
     val isUser = msg.isUser
-
     val bubbleShape = RoundedCornerShape(
-        topStart = 20.dp,
-        topEnd = 20.dp,
-        bottomStart = if (isUser) 20.dp else 6.dp,
-        bottomEnd = if (isUser) 6.dp else 20.dp
+        topStart = 22.dp,
+        topEnd = 22.dp,
+        bottomStart = if (isUser) 22.dp else 8.dp,
+        bottomEnd = if (isUser) 8.dp else 22.dp
     )
 
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 5.dp, vertical = 6.dp),
-        horizontalArrangement =
-            if (isUser) Arrangement.End else Arrangement.Start
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 6.dp),
+        horizontalArrangement = if (isUser) Arrangement.End else Arrangement.Start
     ) {
         Column(
             modifier = Modifier
-                .pointerInput(Unit) {
-                    detectTapGestures(onLongPress = { onLongPress() })
-                }
-                .widthIn(max = 300.dp)
+                .pointerInput(Unit) { detectTapGestures(onLongPress = { onLongPress() }) }
+                .widthIn(max = 320.dp)
                 .clip(bubbleShape)
-                .background(
-                    if (isUser)
-                        Color(0xB3C8E6C9) // YOUR OLD USER COLOR
-                    else
-                        Color(0xFFFFECB3).copy(alpha = 0.4f) // YOUR OLD BOT COLOR
-                )
-                .border(
-                    1.dp,
-                    Color.White.copy(alpha = 35f),
-                    bubbleShape
-                )
-                .padding(14.dp)
+                .background(if (isUser) Color(0xB3C8E6C9) else Color(0xFFFFECB3).copy(alpha = 0.45f))
+                .border(1.dp, Color.White.copy(alpha = 0.30f), bubbleShape)
+                .padding(horizontal = 16.dp, vertical = 12.dp)
         ) {
-
-            // Modern image message (Material 3 style)
             if (msg.imageUri != null) {
                 Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 6.dp),
-                    shape = RoundedCornerShape(18.dp),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = Color(0xFF0F0F1A)
-                    )
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    elevation = CardDefaults.cardElevation(4.dp)
                 ) {
                     AsyncImage(
                         model = msg.imageUri,
                         contentDescription = null,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .aspectRatio(1.6f)
-                            .clip(RoundedCornerShape(18.dp)),
+                        modifier = Modifier.fillMaxWidth().aspectRatio(1.6f),
                         contentScale = ContentScale.Crop
                     )
                 }
-
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(Modifier.height(10.dp))
             }
 
-
-            // Text message
             Text(
                 text = parseMarkdown(msg.text),
                 fontSize = 16.sp,
@@ -717,74 +669,39 @@ fun ChatBubble(
     }
 }
 
-
 // ======================================================
-// MODERN CLEAN INPUT BAR (NO BLUR • NO ERRORS)
+// INPUT BAR
 // ======================================================
 @Composable
-fun InputBar(
-    text: String,
-    onChange: (String) -> Unit,
-    onSend: () -> Unit,
-    onImageClick: () -> Unit
-) {
+fun InputBar(text: String, onChange: (String) -> Unit, onSend: () -> Unit, onImageClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 14.dp, vertical = 10.dp)
-            .clip(RoundedCornerShape(28.dp))
-            .background(Color.White.copy(alpha = 0.50f))
-            .border(
-                1.dp,
-                Color.White.copy(alpha = 0.25f),
-                RoundedCornerShape(28.dp)
-            )
+            .clip(RoundedCornerShape(30.dp))
+            .background(Color.White.copy(alpha = 0.55f))
+            .border(1.dp, Color.White.copy(alpha = 0.30f), RoundedCornerShape(30.dp))
             .padding(horizontal = 14.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-
-        // MODERN IMAGE BUTTON
         IconButton(
             onClick = onImageClick,
-            modifier = Modifier
-                .size(42.dp)
-                .clip(CircleShape)
-                .background(
-                    Color.White.copy(alpha = 0.22f)
-                )
-                .border(
-                    width = 1.dp,
-                    color = Color.White.copy(alpha = 0.35f),
-                    shape = CircleShape
-                )
+            modifier = Modifier.size(42.dp).clip(CircleShape).background(Color.White.copy(alpha = 0.25f)).border(1.dp, Color.White.copy(alpha = 0.35f), CircleShape)
         ) {
-            Icon(
-                painter = painterResource(id = R.drawable.mes),
-                contentDescription = "Image",
-                tint = Color.Black.copy(alpha = 0.85f),
-                modifier = Modifier.size(25.dp)
-            )
+            Icon(painter = painterResource(id = R.drawable.img), contentDescription = null, tint = Color.Black.copy(alpha = 0.85f), modifier = Modifier.size(24.dp))
         }
-
 
         Spacer(Modifier.width(10.dp))
 
-        // TEXT FIELD (SAFE)
         TextField(
             value = text,
             onValueChange = onChange,
             modifier = Modifier.weight(1f),
-            placeholder = {
-                Text(
-                    "Ask Echo…",
-                    color = Color.Black.copy(alpha = 0.45f)
-                )
-            },
+            placeholder = { Text("Ask Echo…", color = Color.Black.copy(alpha = 0.45f)) },
             singleLine = true,
             colors = TextFieldDefaults.colors(
                 focusedContainerColor = Color.Transparent,
                 unfocusedContainerColor = Color.Transparent,
-                disabledContainerColor = Color.Transparent,
                 focusedIndicatorColor = Color.Transparent,
                 unfocusedIndicatorColor = Color.Transparent,
                 cursorColor = Color.Black
@@ -793,30 +710,12 @@ fun InputBar(
 
         Spacer(Modifier.width(10.dp))
 
-        // SEND BUTTON
         IconButton(
             onClick = onSend,
             enabled = text.isNotBlank(),
-            modifier = Modifier
-                .size(46.dp)
-                .clip(CircleShape)
-                .background(
-                    if (text.isNotBlank())
-                        Color.Black
-                    else
-                        Color.Black.copy(alpha = 0.25f)
-                )
+            modifier = Modifier.size(46.dp).clip(CircleShape).background(if (text.isNotBlank()) Color.Black else Color.Black.copy(alpha = 0.25f))
         ) {
-            Icon(
-                painter = painterResource(R.drawable.send),
-                contentDescription = "Send",
-                tint = Color.White
-            )
+            Icon(painter = painterResource(id = R.drawable.send), contentDescription = null, tint = Color.White)
         }
     }
 }
-
-
-
-
-
