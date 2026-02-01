@@ -108,7 +108,11 @@ fun SettingUI(onLogout: () -> Unit) {
     ) {
 
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(Icons.Default.ArrowBack, contentDescription = null)
+            Icon(
+                Icons.Default.ArrowBack,
+                contentDescription = null,
+                modifier = Modifier.clickable { (context as? ComponentActivity)?.finish() }
+            )
             Spacer(Modifier.width(16.dp))
             Text("Settings", fontSize = 20.sp, fontWeight = FontWeight.Medium)
         }
@@ -168,7 +172,6 @@ fun SettingUI(onLogout: () -> Unit) {
             label = ""
         )
 
-        // ✅ FIX 1: Animated card → EchoWeb
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -203,7 +206,6 @@ fun SettingUI(onLogout: () -> Unit) {
 
         Spacer(Modifier.height(24.dp))
 
-        // ✅ FIX 2: Realtime DB → Echo.kt
         SettingRow(
             "Echo App Realtime Database",
             true
@@ -216,7 +218,14 @@ fun SettingUI(onLogout: () -> Unit) {
         SettingRow("Permissions") {
             context.startActivity(Intent(context, PermissionsActivity::class.java))
         }
-        SettingRow("Connectors") {}
+
+        // ✅ FIXED: Now links to DataBackupScreen (Backup.kt)
+        SettingRow("Connectors") {
+            context.startActivity(
+                Intent(context, DataBackupScreen::class.java) // Ensure this matches your Activity name in Backup.kt
+            )
+        }
+
         SettingRow("Manage memory") {}
         SettingRow("User") {}
         SettingRow("Give feedback") {

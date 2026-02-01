@@ -13,11 +13,6 @@
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 
-    <!-- NOTIFICATIONS (Android 13 / API 33+) -->
-    <uses-permission
-        android:name="android.permission.POST_NOTIFICATIONS"
-        tools:targetApi="33" />
-
     <!-- ================= APPLICATION ================= -->
 
     <application
@@ -63,9 +58,13 @@
             android:name=".EchoWeb"
             android:exported="false" />
 
-        <!-- ✅ ONLY ADD: echo.kt -->
+        <!-- ECHO -->
         <activity
             android:name=".Echo"
+            android:exported="false" />
+
+        <activity
+            android:name=".DataBackupScreen"
             android:exported="false" />
 
     </application>
