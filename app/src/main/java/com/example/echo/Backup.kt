@@ -29,9 +29,9 @@ import androidx.core.view.WindowInsetsControllerCompat
 
 // --- MODERN M3 REFINED PALETTE ---
 val ScreenBg = Color(0xFFFFF8E1)
-val CardPeach = Color(0x99FFECB3)
+val CardPeach = Color(0x80FFECB3)
 val AccentBrown = Color(0xFF8D5B41)
-val TextDark = Color(0xFF2D2724)
+val TextDark = Color(0xCC2D2724)
 val TextSub = Color(0xFF756B67)
 
 class DataBackupScreen : ComponentActivity() {
@@ -179,7 +179,7 @@ fun ModernBackupRow(
         else -> RoundedCornerShape(4.dp)
     }
 
-    val contentColor = if (isDanger) Color(0xFFB3261E) else TextDark
+    val contentColor = if (isDanger) Color(0xFF2D2724) else TextDark
 
     Surface(
         modifier = Modifier.fillMaxWidth(),

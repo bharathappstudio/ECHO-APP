@@ -191,11 +191,10 @@ class Ai : ComponentActivity() {
 // ======================================================
 @Composable
 fun Background() {
-    Image(
-        painter = painterResource(id = R.drawable.k2),
-        contentDescription = null,
-        modifier = Modifier.fillMaxSize(),
-        contentScale = ContentScale.Crop
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFFFFF3E0)) // A soft, light orange
     )
 }
 
@@ -272,8 +271,8 @@ fun EchoTopBar() {
                 .background(
                     Brush.verticalGradient(
                         colors = listOf(
-                            Color.White.copy(alpha = 0.35f),
-                            Color.White.copy(alpha = 0.15f)
+                            Color.White.copy(alpha = 0.30f),
+                            Color.White.copy(alpha = 0.30f)
                         )
                     )
                 )
@@ -325,7 +324,7 @@ fun EchoTopBar() {
                     text = "Echo AI",
                     fontSize = 18.sp,
                     fontWeight = FontWeight.SemiBold,
-                    color = Color.Black.copy(alpha = 0.92f),
+                    color = Color.Black.copy(alpha = 0.80f),
                     letterSpacing = 0.6.sp
                 )
                 Text(
