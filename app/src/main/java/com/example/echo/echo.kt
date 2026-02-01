@@ -6,19 +6,22 @@ import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -30,7 +33,6 @@ class Echo : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         WindowCompat.setDecorFitsSystemWindows(window, false)
-
         window.statusBarColor = SysColor.TRANSPARENT
         window.navigationBarColor = SysColor.TRANSPARENT
 
@@ -52,176 +54,132 @@ class Echo : ComponentActivity() {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ConnectorsScreen() {
-    Scaffold(
-        containerColor = Color(0xFFFFF8E1),
-        topBar = {
-            CenterAlignedTopAppBar(
-                title = {
-                    Text(
-                        text = "Connectors",
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Medium
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = { }) {
-                        Icon(
-                            painter = painterResource(R.drawable.mes),
-                            contentDescription = "Back",
-                            modifier = Modifier.size(22.dp)
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = Color(0xFFFFF8E1)
-                )
-            )
-        }
-    ) { padding ->
-        Column(
+    val context = LocalContext.current
+    val backgroundColor = Color(0xFFFBF8F6)
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(backgroundColor)
+            .statusBarsPadding()
+            .navigationBarsPadding()
+    ) {
+        // --- FIXED LINEAR HEADER STYLE ---
+        Row(
             modifier = Modifier
-                .padding(padding)
-                .fillMaxSize()
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp, vertical = 20.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
+            Icon(
+                imageVector = Icons.Default.ArrowBack,
+                contentDescription = "Back",
+                tint = Color(0xFF1C1C1E),
+                modifier = Modifier
+                    .size(24.dp)
+                    .clickable { (context as? ComponentActivity)?.finish() }
+            )
+
+            Spacer(Modifier.width(16.dp))
 
             Text(
-                text = "Add more connectors",
-                fontSize = 22.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = Color(0xCC1C1C1E),
-                modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp)
+                text = "Connectors",
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Medium,
+                color = Color(0xFF1C1C1E)
             )
+        }
+
+        // --- CONTENT LIST ---
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(horizontal = 20.dp, vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            item {
+                Column(modifier = Modifier.padding(bottom = 8.dp)) {
+                    Text(
+                        "Add more connectors",
+                        fontSize = 26.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        letterSpacing = (-0.5).sp
+                    )
+                    Text(
+                        "Expand your AI workspace with integrations",
+                        fontSize = 14.sp,
+                        color = Color.Gray
+                    )
+                }
+            }
 
             val connectors = listOf(
-                ConnectorData(
-                    "Gmail",
-                    "Search, read, and analyze messages in your Gmail inbox.",
-                    R.drawable.bg
-                ),
-                ConnectorData(
-                    "Google Calendar",
-                    "Search and read events in your Google Calendar.",
-                    R.drawable.bg
-                ),
-                ConnectorData(
-                    "Google Contacts",
-                    "Access your Google contacts.",
-                    R.drawable.bg
-                ),
-                ConnectorData(
-                    "Google Drive",
-                    "Search files in your Google Drive.",
-                    R.drawable.bg
-                )
+                ConnectorData("Gmail", "Intelligent email indexing & summaries", R.drawable.drive),
+                ConnectorData("Calendar", "Smart scheduling & event extraction", R.drawable.coupon_2),
+                ConnectorData("Contacts", "Neural network contact management", R.drawable.wavy_check),
+                ConnectorData("Drive", "Deep file search & cloud processing", R.drawable.folder)
             )
 
-            LazyColumn(
-                verticalArrangement = Arrangement.spacedBy(14.dp),
-                contentPadding = PaddingValues(bottom = 24.dp)
-            ) {
-                items(connectors) {
-                    ConnectorItem(it)
-                }
+            items(connectors) { connector ->
+                M3ModernCard(connector)
             }
         }
     }
 }
 
 @Composable
-fun ConnectorItem(data: ConnectorData) {
-    Card(
+fun M3ModernCard(data: ConnectorData) {
+    Surface(
+        color = Color.White,
+        shape = RoundedCornerShape(28.dp),
+        shadowElevation = 0.5.dp,
         modifier = Modifier
-            .padding(horizontal = 16.dp)
             .fillMaxWidth()
-            .clickable { },
-        shape = RoundedCornerShape(26.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        elevation = CardDefaults.cardElevation(0.dp)
+            .clickable { /* Action */ }
     ) {
-        Column(modifier = Modifier.padding(20.dp)) {
-
-            Row(verticalAlignment = Alignment.CenterVertically) {
+        Row(
+            modifier = Modifier.padding(18.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // ICON CONTAINER
+            Box(
+                modifier = Modifier
+                    .size(60.dp)
+                    .clip(RoundedCornerShape(20.dp))
+                    .background(Color(0xFFF4EFED)),
+                contentAlignment = Alignment.Center
+            ) {
                 Image(
                     painter = painterResource(data.icon),
                     contentDescription = null,
-                    modifier = Modifier.size(34.dp)
+                    modifier = Modifier.size(28.dp)
                 )
+            }
 
-                Spacer(Modifier.width(12.dp))
+            Spacer(Modifier.width(18.dp))
 
+            Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = data.title,
                     fontSize = 18.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = Color(0xFF1C1C1E),
-                    modifier = Modifier.weight(1f)
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF1C1C1E)
                 )
-
-                Surface(
-                    shape = RoundedCornerShape(50),
-                    color = Color(0x80F3F3F3),
-                    onClick = { }
-                ) {
-                    Text(
-                        text = "Connect",
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Medium,
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp),
-                        color = Color(0xFF1C1C1E)
-                    )
-                }
-            }
-
-            Spacer(Modifier.height(12.dp))
-
-            Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     text = data.desc,
-                    fontSize = 14.sp,
-                    color = Color(0xFF6B7280),
-                    modifier = Modifier.weight(1f),
-                    lineHeight = 20.sp
+                    fontSize = 13.sp,
+                    color = Color.Gray,
+                    lineHeight = 18.sp
                 )
-
             }
         }
     }
 }
 
-data class ConnectorData(
-    val title: String,
-    val desc: String,
-    val icon: Int
-)
+data class ConnectorData(val title: String, val desc: String, val icon: Int)
 
 @Composable
 fun EchoTheme(content: @Composable () -> Unit) {
-    MaterialTheme(
-        colorScheme = lightColorScheme(
-            background = Color(0x80FBF8F5),
-            surface = Color.White,
-            onSurface = Color(0xFF1C1C1E)
-        ),
-        typography = Typography(
-            displayLarge = TextStyle(fontFamily = FontFamily.SansSerif),
-            displayMedium = TextStyle(fontFamily = FontFamily.SansSerif),
-            displaySmall = TextStyle(fontFamily = FontFamily.SansSerif),
-            headlineLarge = TextStyle(fontFamily = FontFamily.SansSerif),
-            headlineMedium = TextStyle(fontFamily = FontFamily.SansSerif),
-            headlineSmall = TextStyle(fontFamily = FontFamily.SansSerif),
-            titleLarge = TextStyle(fontFamily = FontFamily.SansSerif),
-            titleMedium = TextStyle(fontFamily = FontFamily.SansSerif),
-            titleSmall = TextStyle(fontFamily = FontFamily.SansSerif),
-            bodyLarge = TextStyle(fontFamily = FontFamily.SansSerif),
-            bodyMedium = TextStyle(fontFamily = FontFamily.SansSerif),
-            bodySmall = TextStyle(fontFamily = FontFamily.SansSerif),
-            labelLarge = TextStyle(fontFamily = FontFamily.SansSerif),
-            labelMedium = TextStyle(fontFamily = FontFamily.SansSerif),
-            labelSmall = TextStyle(fontFamily = FontFamily.SansSerif)
-        ),
-        content = content
-    )
+    MaterialTheme(content = content)
 }

@@ -11,11 +11,15 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -23,21 +27,18 @@ import androidx.compose.ui.unit.sp
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsControllerCompat
 
-// --- STYLE PALETTE ---
-val ScreenBg = Color(0xFFFFFBFA)
-val CardPeach = Color(0xFFFDF2ED)
-val TextDark = Color(0xFF423935)
-val TextGray = Color(0xFF756B67)
-val SectionTitle = Color(0xFF8D5B41)
+// --- MODERN M3 REFINED PALETTE ---
+val ScreenBg = Color(0xFFFFF8E1)
+val CardPeach = Color(0x99FFECB3)
+val AccentBrown = Color(0xFF8D5B41)
+val TextDark = Color(0xFF2D2724)
+val TextSub = Color(0xFF756B67)
 
 class DataBackupScreen : ComponentActivity() {
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // ✅ YOUR REQUESTED CONFIGURATION
         WindowCompat.setDecorFitsSystemWindows(window, false)
-
         window.statusBarColor = SysColor.TRANSPARENT
         window.navigationBarColor = SysColor.TRANSPARENT
 
@@ -53,144 +54,157 @@ class DataBackupScreen : ComponentActivity() {
 
         setContent {
             MaterialTheme {
-                // Calling the UI Composable
-                DataBackupUI(onBack = { finish() })
+                DataBackupUI()
             }
         }
     }
 }
 
 @Composable
-fun DataBackupUI(onBack: () -> Unit) {
+fun DataBackupUI() {
+    val context = LocalContext.current
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(ScreenBg)
-            // navigationBarsPadding used here to prevent content hiding behind nav bar
-            // since you are using FLAG_LAYOUT_NO_LIMITS
-            .padding(horizontal = 16.dp)
             .statusBarsPadding()
+            .navigationBarsPadding()
+            .padding(horizontal = 20.dp)
             .verticalScroll(rememberScrollState())
     ) {
-        // --- HEADER ---
+        // --- YOUR REQUESTED LINEAR HEADER STYLE ---
         Row(
-            modifier = Modifier.padding(top = 20.dp, bottom = 20.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 24.dp, bottom = 28.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            IconButton(onClick = onBack) {
-                Icon(
-                    painter = painterResource(id = R.drawable.mes),
-                    contentDescription = null,
-                    tint = TextDark,
-                    modifier = Modifier.size(24.dp)
-                )
-            }
+            Icon(
+                imageVector = Icons.Default.ArrowBack,
+                contentDescription = null,
+                tint = TextDark,
+                modifier = Modifier
+                    .size(24.dp)
+                    .clickable { (context as? ComponentActivity)?.finish() }
+            )
+
+            Spacer(Modifier.width(16.dp))
+
             Text(
                 text = "Data & Backup",
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold,
-                color = TextDark,
-                modifier = Modifier.padding(start = 12.dp)
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Medium,
+                color = TextDark
             )
         }
 
-        // --- CLOUD BACKUP SECTION ---
-        Text(
-            text = "Cloud Backup",
-            color = SectionTitle,
-            fontSize = 16.sp,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(vertical = 12.dp)
-        )
-
-        BackupRow(
+        // --- SECTION: CLOUD ---
+        SectionHeader("Cloud Backup")
+        ModernBackupRow(
             iconId = R.drawable.drive,
             title = "Google Drive Backup",
-            subtitle = "Backup and restore your data to Google Drive",
+            subtitle = "Secure cloud sync for your data",
             isTop = true,
             isBottom = true,
             isLocked = true
         )
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(32.dp))
 
-        // --- NEW BACKUP SECTION ---
-        Text(
-            text = "New Backup",
-            color = SectionTitle,
-            fontSize = 16.sp,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(vertical = 12.dp)
-        )
-
-        Column(verticalArrangement = Arrangement.spacedBy(1.dp)) {
-            BackupRow(
+        // --- SECTION: MANAGEMENT ---
+        SectionHeader("Management")
+        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            ModernBackupRow(
                 iconId = R.drawable.coupon_2,
                 title = "Create Local Backup",
-                subtitle = "Save all your data to a backup file",
+                subtitle = "Save snapshots to your device storage",
                 isTop = true
             )
-            BackupRow(
+            ModernBackupRow(
                 iconId = R.drawable.wavy_check,
-                title = "Restore Local Backup",
-                subtitle = "Restore your data from a backup file"
+                title = "Restore Data",
+                subtitle = "Recover from a local file"
             )
-            BackupRow(
+            ModernBackupRow(
                 iconId = R.drawable.folder,
                 title = "Export to CSV",
-                subtitle = "Export your data to a CSV file, Not intended for backup purposes",
+                subtitle = "View your data in Excel or Sheets",
                 isLocked = true
             )
-            BackupRow(
+            ModernBackupRow(
                 iconId = R.drawable.trash,
-                title = "Clear all data",
-                subtitle = "Permanently delete all your data from the app. This action cannot be undone."
+                title = "Clear All Data",
+                subtitle = "Erase app database permanently",
+                isDanger = true
             )
-            BackupRow(
+            ModernBackupRow(
                 iconId = R.drawable.coupon_2,
-                title = "History",
-                subtitle = "",
+                title = "Backup History",
+                subtitle = "View recent logs",
                 isBottom = true
             )
         }
 
-        Spacer(modifier = Modifier.height(60.dp)) // Extra space for Navigation Bar
+        Spacer(modifier = Modifier.height(100.dp))
     }
 }
 
 @Composable
-fun BackupRow(
+fun SectionHeader(title: String) {
+    Text(
+        text = title.uppercase(),
+        fontSize = 13.sp,
+        fontWeight = FontWeight.Bold,
+        letterSpacing = 1.2.sp,
+        color = AccentBrown,
+        modifier = Modifier.padding(start = 4.dp, bottom = 12.dp)
+    )
+}
+
+@Composable
+fun ModernBackupRow(
     iconId: Int,
     title: String,
     subtitle: String,
     isTop: Boolean = false,
     isBottom: Boolean = false,
-    isLocked: Boolean = false
+    isLocked: Boolean = false,
+    isDanger: Boolean = false
 ) {
     val shape = when {
-        isTop && isBottom -> RoundedCornerShape(16.dp)
-        isTop -> RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
-        isBottom -> RoundedCornerShape(bottomStart = 16.dp, bottomEnd = 16.dp)
-        else -> RoundedCornerShape(0.dp)
+        isTop && isBottom -> RoundedCornerShape(24.dp)
+        isTop -> RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp, bottomStart = 4.dp, bottomEnd = 4.dp)
+        isBottom -> RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp, bottomStart = 24.dp, bottomEnd = 24.dp)
+        else -> RoundedCornerShape(4.dp)
     }
 
+    val contentColor = if (isDanger) Color(0xFFB3261E) else TextDark
+
     Surface(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { /* Action */ },
+        modifier = Modifier.fillMaxWidth(),
         color = CardPeach,
-        shape = shape
+        shape = shape,
+        onClick = { /* Action */ }
     ) {
         Row(
             modifier = Modifier.padding(20.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(
-                painter = painterResource(id = iconId),
-                contentDescription = null,
-                tint = TextDark,
-                modifier = Modifier.size(28.dp)
-            )
+            Box(
+                modifier = Modifier
+                    .size(44.dp)
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(if (isDanger) Color.White.copy(alpha = 0.5f) else Color.White),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    painter = painterResource(id = iconId),
+                    contentDescription = null,
+                    tint = contentColor,
+                    modifier = Modifier.size(22.dp)
+                )
+            }
 
             Spacer(modifier = Modifier.width(16.dp))
 
@@ -200,24 +214,23 @@ fun BackupRow(
                         text = title,
                         fontSize = 17.sp,
                         fontWeight = FontWeight.Bold,
-                        color = TextDark
+                        color = contentColor
                     )
                     if (isLocked) {
-                        Spacer(modifier = Modifier.width(6.dp))
+                        Spacer(modifier = Modifier.width(8.dp))
                         Icon(
                             painter = painterResource(id = R.drawable.wavy_check),
                             contentDescription = null,
-                            tint = TextDark,
+                            tint = AccentBrown,
                             modifier = Modifier.size(14.dp)
                         )
                     }
                 }
-
                 if (subtitle.isNotEmpty()) {
                     Text(
                         text = subtitle,
                         fontSize = 13.sp,
-                        color = TextGray,
+                        color = TextSub,
                         lineHeight = 18.sp
                     )
                 }
