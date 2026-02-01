@@ -688,7 +688,7 @@ fun InputBar(text: String, onChange: (String) -> Unit, onSend: () -> Unit, onIma
             onClick = onImageClick,
             modifier = Modifier.size(42.dp).clip(CircleShape).background(Color.White.copy(alpha = 0.25f)).border(1.dp, Color.White.copy(alpha = 0.35f), CircleShape)
         ) {
-            Icon(painter = painterResource(id = R.drawable.img), contentDescription = null, tint = Color.Black.copy(alpha = 0.85f), modifier = Modifier.size(24.dp))
+            Icon(painter = painterResource(id = R.drawable.folder), contentDescription = null, tint = Color.Black.copy(alpha = 0.85f), modifier = Modifier.size(24.dp))
         }
 
         Spacer(Modifier.width(10.dp))

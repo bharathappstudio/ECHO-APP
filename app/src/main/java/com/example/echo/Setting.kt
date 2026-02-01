@@ -220,7 +220,7 @@ fun SettingUI(onLogout: () -> Unit) {
         }
 
         // ✅ FIXED: Now links to DataBackupScreen (Backup.kt)
-        SettingRow("Connectors") {
+        SettingRow("Data & Backup") {
             context.startActivity(
                 Intent(context, DataBackupScreen::class.java) // Ensure this matches your Activity name in Backup.kt
             )

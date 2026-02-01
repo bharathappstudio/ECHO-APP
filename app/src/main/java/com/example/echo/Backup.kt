@@ -122,7 +122,7 @@ fun DataBackupUI() {
                 isTop = true
             )
             ModernBackupRow(
-                iconId = R.drawable.wavy_check,
+                iconId = R.drawable.restore,
                 title = "Restore Data",
                 subtitle = "Recover from a local file"
             )
@@ -139,7 +139,7 @@ fun DataBackupUI() {
                 isDanger = true
             )
             ModernBackupRow(
-                iconId = R.drawable.coupon_2,
+                iconId = R.drawable.cloud,
                 title = "Backup History",
                 subtitle = "View recent logs",
                 isBottom = true
