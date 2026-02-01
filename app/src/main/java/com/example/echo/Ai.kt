@@ -192,7 +192,7 @@ class Ai : ComponentActivity() {
 @Composable
 fun Background() {
     Image(
-        painter = painterResource(id = R.drawable.bb),
+        painter = painterResource(id = R.drawable.k2),
         contentDescription = null,
         modifier = Modifier.fillMaxSize(),
         contentScale = ContentScale.Crop

@@ -205,7 +205,7 @@ fun BackupRow(
                     if (isLocked) {
                         Spacer(modifier = Modifier.width(6.dp))
                         Icon(
-                            painter = painterResource(id = R.drawable.k2),
+                            painter = painterResource(id = R.drawable.wavy_check),
                             contentDescription = null,
                             tint = TextDark,
                             modifier = Modifier.size(14.dp)
