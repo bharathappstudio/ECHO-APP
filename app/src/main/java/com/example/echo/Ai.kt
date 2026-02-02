@@ -163,10 +163,16 @@ class Ai : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        // ✅ FIXED: Better Edge-to-Edge support for 3-button nav
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
         window.statusBarColor = SysColor.TRANSPARENT
         window.navigationBarColor = SysColor.TRANSPARENT
+
+        // Ensure navigation bar contrast is disabled to show background
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            window.isNavigationBarContrastEnforced = false
+        }
 
         window.setFlags(
             WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
@@ -194,7 +200,7 @@ fun Background() {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFFFF3E0)) // A soft, light orange
+            .background(Color(0xFFFFF3E0))
     )
 }
 
@@ -348,7 +354,7 @@ fun EchoTopBar() {
 
 
 // ======================================================
-// CHAT APP ROOT
+// CHAT APP ROOT (TYPE UNCHANGED)
 // ======================================================
 @Composable
 fun ChatApp() {
@@ -362,26 +368,28 @@ fun ChatApp() {
 
     Box(Modifier.fillMaxSize()) {
         Background()
-        Column {
+        // ✅ FIXED: Use navigationBarsPadding to prevent 3-button overlap
+        Column(Modifier.fillMaxSize()) {
             EchoTopBar()
-            ChatScreen(model)
+            Box(Modifier.weight(1f)) {
+                ChatScreen(model)
+            }
         }
     }
 }
 
 // ======================================================
-// THINKING ANIMATION COMPONENT (iOS STYLE)
+// THINKING ANIMATION COMPONENT
 // ======================================================
 @Composable
 fun ThinkingAnimation() {
     val infiniteTransition = rememberInfiniteTransition(label = "dots")
 
-    // Function to create sequential bounce for each dot
     @Composable
     fun animateDot(delay: Int): Float {
         val anim by infiniteTransition.animateFloat(
             initialValue = 0f,
-            targetValue = -8f, // Bounce height
+            targetValue = -8f,
             animationSpec = infiniteRepeatable(
                 animation = weightlessEasingTween(delay),
                 repeatMode = RepeatMode.Reverse
@@ -398,7 +406,7 @@ fun ThinkingAnimation() {
     ) {
         Box(
             modifier = Modifier
-                .clip(RoundedCornerShape(20.dp)) // iOS style more rounded
+                .clip(RoundedCornerShape(20.dp))
                 .background(Color(0xFFFFECB3).copy(alpha = 0.45f))
                 .border(
                     0.5.dp,
@@ -411,7 +419,6 @@ fun ThinkingAnimation() {
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(5.dp)
             ) {
-                // Three iOS-style dots
                 Dot(animateDot(0))
                 Dot(animateDot(150))
                 Dot(animateDot(300))
@@ -431,7 +438,6 @@ fun Dot(offsetY: Float) {
     )
 }
 
-// Helper for iOS-like physics
 fun weightlessEasingTween(delay: Int) = tween<Float>(
     durationMillis = 400,
     delayMillis = delay,
@@ -440,7 +446,7 @@ fun weightlessEasingTween(delay: Int) = tween<Float>(
 
 
 // ======================================================
-// MAIN CHAT SCREEN (LOGIC + UI)
+// MAIN CHAT SCREEN (LOGIC FIX ONLY)
 // ======================================================
 @Composable
 fun ChatScreen(model: GenerativeModel) {
@@ -449,7 +455,10 @@ fun ChatScreen(model: GenerativeModel) {
     val keyboard = LocalSoftwareKeyboardController.current
     val scope = rememberCoroutineScope()
     val listState = rememberLazyListState()
-    val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return
+
+    val currentUser = FirebaseAuth.getInstance().currentUser
+    if (currentUser == null) return
+    val uid = currentUser.uid
 
     val dbRef = FirebaseDatabase.getInstance()
         .reference
@@ -469,21 +478,19 @@ fun ChatScreen(model: GenerativeModel) {
         }
 
     LaunchedEffect(Unit) {
-        dbRef.addValueEventListener(object : ValueEventListener {
+        dbRef.orderByChild("timestamp").addValueEventListener(object : ValueEventListener {
             override fun onDataChange(s: DataSnapshot) {
+                val newList = s.children.mapNotNull { it.getValue(ChatMessage::class.java) }
                 messages.clear()
-                s.children
-                    .mapNotNull { it.getValue(ChatMessage::class.java) }
-                    .forEach { messages.add(it) }
-                messages.sortBy { it.timestamp }
+                messages.addAll(newList)
             }
             override fun onCancelled(e: DatabaseError) {}
         })
     }
 
     LaunchedEffect(messages.size, loading) {
-        if (messages.isNotEmpty() || loading) {
-            listState.animateScrollToItem(if (loading) messages.size else messages.lastIndex)
+        if (messages.isNotEmpty()) {
+            listState.animateScrollToItem(messages.size - 1)
         }
     }
 
@@ -550,7 +557,8 @@ fun ChatScreen(model: GenerativeModel) {
         }
     }
 
-    Box(modifier = Modifier.fillMaxSize().imePadding()) {
+    // ✅ FIXED: combined imePadding + navigationBarsPadding
+    Box(modifier = Modifier.fillMaxSize().imePadding().navigationBarsPadding()) {
         if (messages.isEmpty() && !loading) {
             EmptyChatImage()
         }
@@ -676,11 +684,11 @@ fun InputBar(text: String, onChange: (String) -> Unit, onSend: () -> Unit, onIma
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 14.dp, vertical = 10.dp)
+            .padding(horizontal = 5.dp, vertical = 10.dp)
             .clip(RoundedCornerShape(30.dp))
             .background(Color.White.copy(alpha = 0.55f))
             .border(1.dp, Color.White.copy(alpha = 0.30f), RoundedCornerShape(30.dp))
-            .padding(horizontal = 14.dp, vertical = 10.dp),
+            .padding(horizontal = 5.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         IconButton(

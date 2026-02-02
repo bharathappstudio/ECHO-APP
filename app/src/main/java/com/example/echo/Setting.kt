@@ -16,6 +16,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState // Added for scroll
+import androidx.compose.foundation.verticalScroll // Added for scroll
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -89,6 +91,7 @@ class Setting : ComponentActivity() {
 fun SettingUI(onLogout: () -> Unit) {
 
     val context = LocalContext.current
+    val scrollState = rememberScrollState() // ✅ Created scroll state
 
     val user = FirebaseAuth.getInstance().currentUser
     val name = user?.displayName ?: "Unknown User"
@@ -103,7 +106,10 @@ fun SettingUI(onLogout: () -> Unit) {
         modifier = Modifier
             .fillMaxSize()
             .background(Color(0xFFFFF8E1))
-            .windowInsetsPadding(WindowInsets.systemBars)
+            // ✅ Applied navigationBarsPadding and verticalScroll
+            .windowInsetsPadding(WindowInsets.statusBars)
+            .verticalScroll(scrollState)
+            .navigationBarsPadding()
             .padding(16.dp)
     ) {
 
@@ -219,10 +225,9 @@ fun SettingUI(onLogout: () -> Unit) {
             context.startActivity(Intent(context, PermissionsActivity::class.java))
         }
 
-        // ✅ FIXED: Now links to DataBackupScreen (Backup.kt)
         SettingRow("Data & Backup") {
             context.startActivity(
-                Intent(context, DataBackupScreen::class.java) // Ensure this matches your Activity name in Backup.kt
+                Intent(context, DataBackupScreen::class.java)
             )
         }
 
@@ -246,7 +251,7 @@ fun SettingUI(onLogout: () -> Unit) {
 
         Spacer(Modifier.height(24.dp))
 
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+        Row(Modifier.fillMaxWidth().padding(bottom = 0.dp), horizontalArrangement = Arrangement.Center) {
             TextButton(onClick = onLogout) { Text("Sign out") }
         }
     }

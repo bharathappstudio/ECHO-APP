@@ -3,17 +3,11 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="com.ai.Echo">
 
-    <!-- ================= REQUIRED PERMISSIONS ================= -->
-
-    <!-- INTERNET -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
-    <!-- LOCATION -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-
-    <!-- ================= APPLICATION ================= -->
 
     <application
         android:allowBackup="true"
@@ -21,9 +15,9 @@
         android:icon="@mipmap/ic_launcher"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@android:style/Theme.DeviceDefault.Light.NoActionBar">
+        android:theme="@android:style/Theme.DeviceDefault.Light.NoActionBar"
+        tools:targetApi="31">
 
-        <!-- LAUNCHER -->
         <activity
             android:name=".MainActivity"
             android:exported="true">
@@ -33,32 +27,27 @@
             </intent-filter>
         </activity>
 
-        <!-- AI CHAT -->
         <activity
             android:name=".Ai"
-            android:exported="false" />
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
 
-        <!-- SETTINGS -->
         <activity
             android:name=".Setting"
             android:exported="false" />
 
-        <!-- DATA CONTROLS -->
         <activity
             android:name=".DataControlsActivity"
             android:exported="false" />
 
-        <!-- PERMISSIONS -->
         <activity
             android:name=".PermissionsActivity"
             android:exported="false" />
 
-        <!-- ECHO WEB -->
         <activity
             android:name=".EchoWeb"
             android:exported="false" />
 
-        <!-- ECHO -->
         <activity
             android:name=".Echo"
             android:exported="false" />
