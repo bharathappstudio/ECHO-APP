@@ -18,10 +18,8 @@ android {
 
     buildTypes {
         release {
-            // ✅ REQUIRED for stable release auth
             isMinifyEnabled = true
             isShrinkResources = true
-
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -46,10 +44,10 @@ android {
     }
 
     composeOptions {
+        // Keeping your stable version
         kotlinCompilerExtensionVersion = "1.5.15"
     }
 
-    // ✅ JavaMail META-INF duplicate fix
     packaging {
         resources {
             excludes += setOf(
@@ -57,14 +55,15 @@ android {
                 "META-INF/LICENSE.md",
                 "META-INF/NOTICE",
                 "META-INF/LICENSE",
-                "META-INF/DEPENDENCIES"
+                "META-INF/DEPENDENCIES",
+                "META-INF/AL2.0",
+                "META-INF/LGPL2.1"
             )
         }
     }
 }
 
 dependencies {
-
     // ---------------- Core ----------------
     implementation("androidx.core:core-ktx:1.15.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.7")
@@ -75,20 +74,22 @@ dependencies {
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-graphics")
     implementation("androidx.compose.ui:ui-tooling-preview")
-    implementation("androidx.compose.material3:material3")
+
+    // ✅ MERGED: Forced Alpha version for ContainedLoadingIndicator
+    // This overrides the BOM for Material3 specifically so your new UI works.
+    implementation("androidx.compose.material3:material3:1.4.0-alpha05")
+    implementation("androidx.compose.material:material-icons-extended")
 
     // ---------------- Coil ----------------
     implementation("io.coil-kt:coil-compose:2.6.0")
 
-    // ---------------- Google Sign-In (FIXED VERSION) ----------------
+    // ---------------- Auth & Credentials ----------------
     implementation("com.google.android.gms:play-services-auth:21.1.1")
-
-    // ---------------- Credential Manager ----------------
     implementation("androidx.credentials:credentials:1.3.0")
     implementation("androidx.credentials:credentials-play-services-auth:1.3.0")
     implementation("com.google.android.libraries.identity.googleid:googleid:1.1.1")
 
-    // ---------------- Firebase (SINGLE BOM) ----------------
+    // ---------------- Firebase ----------------
     implementation(platform("com.google.firebase:firebase-bom:33.7.0"))
     implementation("com.google.firebase:firebase-auth")
     implementation("com.google.firebase:firebase-database")
@@ -96,6 +97,8 @@ dependencies {
     // ---------------- Networking / Coroutines ----------------
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0")
+    // ✅ ADDED: Core is needed for some 'launch' scopes
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0")
 
     // ---------------- Gemini AI ----------------
     implementation("com.google.ai.client.generativeai:generativeai:0.9.0")
@@ -106,12 +109,10 @@ dependencies {
 
     // ---------------- Testing ----------------
     testImplementation("junit:junit:4.13.2")
-
     androidTestImplementation("androidx.test.ext:junit:1.2.1")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.6.1")
     androidTestImplementation(platform("androidx.compose:compose-bom:2024.12.01"))
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
-
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
 }

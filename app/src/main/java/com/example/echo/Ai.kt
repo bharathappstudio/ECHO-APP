@@ -362,7 +362,7 @@ fun ChatApp() {
     val model = remember {
         GenerativeModel(
             modelName = "gemini-3-flash-preview",
-            apiKey = "AIzaSyDgEjfrXcg4qKEOFbfS_QsRaoaGquDn38Q"
+            apiKey = "AIzaSyBwklamGutjGsY_5VmNLjnU7VbEmlUeGZQ"
         )
     }
 
@@ -379,25 +379,11 @@ fun ChatApp() {
 }
 
 // ======================================================
-// THINKING ANIMATION COMPONENT
+// CONTAINED LOADING INDICATOR
 // ======================================================
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun ThinkingAnimation() {
-    val infiniteTransition = rememberInfiniteTransition(label = "dots")
-
-    @Composable
-    fun animateDot(delay: Int): Float {
-        val anim by infiniteTransition.animateFloat(
-            initialValue = 0f,
-            targetValue = -8f,
-            animationSpec = infiniteRepeatable(
-                animation = weightlessEasingTween(delay),
-                repeatMode = RepeatMode.Reverse
-            ), label = ""
-        )
-        return anim
-    }
-
+fun ContainedLoadingIndicator() {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -413,37 +399,16 @@ fun ThinkingAnimation() {
                     Color.White.copy(alpha = 0.40f),
                     RoundedCornerShape(20.dp)
                 )
-                .padding(horizontal = 16.dp, vertical = 14.dp)
+                .padding(horizontal = 16.dp, vertical = 12.dp)
         ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(5.dp)
-            ) {
-                Dot(animateDot(0))
-                Dot(animateDot(150))
-                Dot(animateDot(300))
-            }
+            // Using the Expressive Material 3 Loading Indicator
+            LoadingIndicator(
+                modifier = Modifier.size(25.dp),
+                color = Color.Black.copy(alpha = 20f)
+            )
         }
     }
 }
-
-@Composable
-fun Dot(offsetY: Float) {
-    Box(
-        modifier = Modifier
-            .graphicsLayer(translationY = offsetY)
-            .size(7.dp)
-            .clip(CircleShape)
-            .background(Color.Black.copy(alpha = 0.6f))
-    )
-}
-
-fun weightlessEasingTween(delay: Int) = tween<Float>(
-    durationMillis = 400,
-    delayMillis = delay,
-    easing = FastOutSlowInEasing
-)
-
 
 // ======================================================
 // MAIN CHAT SCREEN (LOGIC FIX ONLY)
@@ -576,8 +541,10 @@ fun ChatScreen(model: GenerativeModel) {
                 }
 
                 if (loading) {
-                    item {
-                        ThinkingAnimation()
+                    // Updated to use the new component name
+                    // Added a unique key "loading_indicator" so Compose tracks it correctly
+                    item(key = "loading_indicator") {
+                        ContainedLoadingIndicator()
                     }
                 }
             }
