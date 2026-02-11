@@ -23,6 +23,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 
 // ===================== COMPOSE UI =====================
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
@@ -105,6 +106,8 @@ import androidx.compose.ui.unit.sp
 // ===================== ADDED FOR iOS ANIMATION =====================
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.animation.core.FastOutSlowInEasing
+import kotlinx.coroutines.delay
+
 // ===================== ======================== =====================
 
 // ======================================================
@@ -362,7 +365,7 @@ fun ChatApp() {
     val model = remember {
         GenerativeModel(
             modelName = "gemini-3-flash-preview",
-            apiKey = "AIzaSyBwklamGutjGsY_5VmNLjnU7VbEmlUeGZQ"
+            apiKey = "AIzaSyASQqkxWBUt5Ni4D9F_EPG36ChpOUliYqU"
         )
     }
 
@@ -384,27 +387,52 @@ fun ChatApp() {
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun ContainedLoadingIndicator() {
+    // 1. Define your 6 "Smiley/Happy" colors
+    val smileyColors = listOf(
+        Color(0xFF43A047), // Bright Yellow
+        Color(0xFFE53935), // Soft Orange
+        Color(0xFFFB8C00), // Pinky Smile
+        Color(0xFF5E35B1)  // Soft Purple
+    )
+
+    // 2. Manage the current color index
+    var colorIndex by remember { mutableIntStateOf(0) }
+
+    // 3. Cycle through colors every 1000ms (1 second)
+    LaunchedEffect(Unit) {
+        while (true) {
+            delay(800)
+            colorIndex = (colorIndex + 1) % smileyColors.size
+        }
+    }
+
+    // 4. Create a smooth transition between the colors
+    val animatedColor by animateColorAsState(
+        targetValue = smileyColors[colorIndex],
+        animationSpec = tween(durationMillis = 800), // smooth 800ms fade
+        label = "ColorAnimation"
+    )
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
+            .padding(horizontal = 16.dp, vertical = 2.dp),
         horizontalArrangement = Arrangement.Start
     ) {
         Box(
             modifier = Modifier
-                .clip(RoundedCornerShape(20.dp))
-                .background(Color(0xFFFFECB3).copy(alpha = 0.45f))
+                .clip(RoundedCornerShape(200.dp))
+                .background(Color(0xFFFFFDE7).copy(alpha = 0.45f))
                 .border(
                     0.5.dp,
                     Color.White.copy(alpha = 0.40f),
-                    RoundedCornerShape(20.dp)
+                    RoundedCornerShape(200.dp)
                 )
                 .padding(horizontal = 16.dp, vertical = 12.dp)
         ) {
-            // Using the Expressive Material 3 Loading Indicator
             LoadingIndicator(
-                modifier = Modifier.size(25.dp),
-                color = Color.Black.copy(alpha = 20f)
+                modifier = Modifier.size(30.dp),
+                color = animatedColor // The changing color!
             )
         }
     }

@@ -12,6 +12,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
@@ -102,6 +104,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun BlackLoginUI(
     googleAuthClient: GoogleAuthClient,
@@ -148,10 +151,7 @@ fun BlackLoginUI(
 
                 if (loading) {
                     Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator(
-                            color = Color.Black,
-                            strokeWidth = 2.5.dp
-                        )
+                        LoadingIndicator()
                     }
                 } else {
                     // Google Button
