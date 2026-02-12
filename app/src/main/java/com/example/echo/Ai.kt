@@ -389,10 +389,10 @@ fun ChatApp() {
 fun ContainedLoadingIndicator() {
     // 1. Define your 6 "Smiley/Happy" colors
     val smileyColors = listOf(
-        Color(0xFF43A047), // Bright Yellow
-        Color(0xFFE53935), // Soft Orange
-        Color(0xFFFB8C00), // Pinky Smile
-        Color(0xFF5E35B1)  // Soft Purple
+        Color(0xFF00C853), // Bright Yellow
+        Color(0xFFD50000), // Soft Orange
+        Color(0xFFFF6D00), // Pinky Smile
+        Color(0xFF6200EA)  // Soft Purple
     )
 
     // 2. Manage the current color index
@@ -401,7 +401,7 @@ fun ContainedLoadingIndicator() {
     // 3. Cycle through colors every 1000ms (1 second)
     LaunchedEffect(Unit) {
         while (true) {
-            delay(800)
+            delay(600)
             colorIndex = (colorIndex + 1) % smileyColors.size
         }
     }
@@ -409,7 +409,7 @@ fun ContainedLoadingIndicator() {
     // 4. Create a smooth transition between the colors
     val animatedColor by animateColorAsState(
         targetValue = smileyColors[colorIndex],
-        animationSpec = tween(durationMillis = 800), // smooth 800ms fade
+        animationSpec = tween(durationMillis = 600), // smooth 800ms fade
         label = "ColorAnimation"
     )
 
@@ -629,7 +629,7 @@ fun ChatBubble(msg: ChatMessage, onLongPress: () -> Unit) {
         topStart = 22.dp,
         topEnd = 22.dp,
         bottomStart = if (isUser) 22.dp else 8.dp,
-        bottomEnd = if (isUser) 8.dp else 22.dp
+        bottomEnd = if (isUser) 5.dp else 22.dp
     )
 
     Row(
@@ -681,9 +681,9 @@ fun InputBar(text: String, onChange: (String) -> Unit, onSend: () -> Unit, onIma
             .fillMaxWidth()
             .padding(horizontal = 5.dp, vertical = 10.dp)
             .clip(RoundedCornerShape(30.dp))
-            .background(Color.White.copy(alpha = 0.55f))
+            .background(Color.White.copy(alpha = 55f))
             .border(1.dp, Color.White.copy(alpha = 0.30f), RoundedCornerShape(30.dp))
-            .padding(horizontal = 5.dp, vertical = 10.dp),
+            .padding(horizontal = 10.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         IconButton(
