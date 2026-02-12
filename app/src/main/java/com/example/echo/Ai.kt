@@ -641,8 +641,8 @@ fun ChatBubble(msg: ChatMessage, onLongPress: () -> Unit) {
                 .pointerInput(Unit) { detectTapGestures(onLongPress = { onLongPress() }) }
                 .widthIn(max = 320.dp)
                 .clip(bubbleShape)
-                .background(if (isUser) Color(0xB3C8E6C9) else Color(0xFFFFECB3).copy(alpha = 0.45f))
-                .border(1.dp, Color.White.copy(alpha = 0.30f), bubbleShape)
+                .background(if (isUser) Color(0x66C8E6C9) else Color(0x80FFECB3).copy(alpha = 0.45f))
+                .border(1.dp, Color.White.copy(alpha = 0.80f), bubbleShape)
                 .padding(horizontal = 16.dp, vertical = 12.dp)
         ) {
             if (msg.imageUri != null) {
@@ -665,7 +665,7 @@ fun ChatBubble(msg: ChatMessage, onLongPress: () -> Unit) {
                 text = parseMarkdown(msg.text),
                 fontSize = 16.sp,
                 lineHeight = 22.sp,
-                color = Color.Black
+                color = Color(0xB3000000) // Light gray modern tone
             )
         }
     }
