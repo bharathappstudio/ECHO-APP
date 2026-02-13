@@ -20,6 +20,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedContent
 
 // ===================== COMPOSE UI =====================
 import androidx.compose.animation.AnimatedVisibility
@@ -106,6 +107,9 @@ import androidx.compose.ui.unit.sp
 // ===================== ADDED FOR iOS ANIMATION =====================
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.togetherWith
 import kotlinx.coroutines.delay
 
 // ===================== ======================== =====================
@@ -228,39 +232,85 @@ fun EmptyChatImage() {
 // ======================================================
 // USER AVATAR
 // ======================================================
+@OptIn(ExperimentalMaterial3ExpressiveApi::class, androidx.compose.animation.ExperimentalAnimationApi::class)
 @Composable
 fun UserAvatar(size: Dp = 40.dp, onClick: () -> Unit) {
-
     val user = FirebaseAuth.getInstance().currentUser
     val name = user?.displayName ?: "U"
     val photoUrl = user?.photoUrl?.toString()?.replace("s96-c", "s4096-c")
+
+    // --- 5 SECOND LOADING LOGIC ---
+    var isInitialLoading by remember { mutableStateOf(true) }
+    val googleColors = listOf(
+        Color(0xFF4285F4), Color(0xFFEA4335), Color(0xFFFBBC05),
+        Color(0xFF34A853), Color(0xFF1976D2)
+    )
+    var colorIndex by remember { mutableIntStateOf(0) }
+
+    LaunchedEffect(Unit) {
+        launch {
+            while (isInitialLoading) {
+                delay(500)
+                colorIndex = (colorIndex + 1) % googleColors.size
+            }
+        }
+        delay(3000)
+        isInitialLoading = false
+    }
+
+    val animatedColor by animateColorAsState(
+        targetValue = googleColors[colorIndex],
+        animationSpec = tween(durationMillis = 500),
+        label = "AvatarColor"
+    )
 
     Box(
         modifier = Modifier
             .size(size)
             .clip(CircleShape)
             .background(Color.White.copy(alpha = 0.22f))
-            .clickable { onClick() },
+            .clickable { if (!isInitialLoading) onClick() },
         contentAlignment = Alignment.Center
     ) {
-        if (photoUrl != null) {
-            AsyncImage(
-                model = photoUrl,
-                contentDescription = null,
-                modifier = Modifier.fillMaxSize().clip(CircleShape)
-            )
-        } else {
-            Text(
-                text = name.first().toString(),
-                fontSize = (size.value / 2.3).sp,
-                fontWeight = FontWeight.SemiBold
-            )
+        // ✅ Added AnimatedContent for smooth transition
+        AnimatedContent(
+            targetState = isInitialLoading,
+            transitionSpec = {
+                (fadeIn(animationSpec = tween(600)) + scaleIn(initialScale = 0.8f))
+                    .togetherWith(fadeOut(animationSpec = tween(600)))
+            },
+            label = "AvatarTransition"
+        ) { loading ->
+            if (loading) {
+                LoadingIndicator(
+                    modifier = Modifier.size(40.dp),
+                    color = animatedColor
+                )
+            } else {
+                if (photoUrl != null) {
+                    AsyncImage(
+                        model = photoUrl,
+                        contentDescription = null,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .clip(CircleShape),
+                        contentScale = ContentScale.Crop
+                    )
+                } else {
+                    Text(
+                        text = name.first().toString(),
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = Color.Black.copy(alpha = 0.8f)
+                    )
+                }
+            }
         }
     }
 }
 
 // ======================================================
-// TOP BAR
+// TOP BAR (NO UI CHANGES)
 // ======================================================
 @Composable
 fun EchoTopBar() {
@@ -272,7 +322,6 @@ fun EchoTopBar() {
             .statusBarsPadding()
             .padding(horizontal = 8.dp, vertical = 10.dp)
     ) {
-
         Box(
             modifier = Modifier
                 .matchParentSize()
@@ -306,7 +355,6 @@ fun EchoTopBar() {
                 .padding(horizontal = 14.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-
             IconButton(
                 onClick = {
                     context.startActivity(
@@ -387,53 +435,35 @@ fun ChatApp() {
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun ContainedLoadingIndicator() {
-    // 1. Define your 6 "Smiley/Happy" colors
-    val smileyColors = listOf(
-        Color(0xFF00C853), // Bright Yellow
-        Color(0xFFD50000), // Soft Orange
-        Color(0xFFFF6D00), // Pinky Smile
-        Color(0xFF6200EA)  // Soft Purple
+    val smileyColors = listOf(Color(0xFFFFC107), Color(0xFFF44336), Color(0xFFE91E63), Color(
+        0xFF4CAF50
     )
-
-    // 2. Manage the current color index
+    )
     var colorIndex by remember { mutableIntStateOf(0) }
 
-    // 3. Cycle through colors every 1000ms (1 second)
     LaunchedEffect(Unit) {
         while (true) {
-            delay(600)
+            delay(800)
             colorIndex = (colorIndex + 1) % smileyColors.size
         }
     }
 
-    // 4. Create a smooth transition between the colors
     val animatedColor by animateColorAsState(
         targetValue = smileyColors[colorIndex],
-        animationSpec = tween(durationMillis = 600), // smooth 800ms fade
+        animationSpec = tween(durationMillis = 600),
         label = "ColorAnimation"
     )
 
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 2.dp),
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 2.dp),
         horizontalArrangement = Arrangement.Start
     ) {
         Box(
-            modifier = Modifier
-                .clip(RoundedCornerShape(200.dp))
-                .background(Color(0xFFFFFDE7).copy(alpha = 0.45f))
-                .border(
-                    0.5.dp,
-                    Color.White.copy(alpha = 0.40f),
-                    RoundedCornerShape(200.dp)
-                )
+            modifier = Modifier.clip(RoundedCornerShape(200.dp)).background(Color(0xFFF0F4C3).copy(alpha = 0.45f))
+                .border(0.5.dp, Color.White.copy(alpha = 0.40f), RoundedCornerShape(200.dp))
                 .padding(horizontal = 16.dp, vertical = 12.dp)
         ) {
-            LoadingIndicator(
-                modifier = Modifier.size(30.dp),
-                color = animatedColor // The changing color!
-            )
+            LoadingIndicator(modifier = Modifier.size(30.dp), color = animatedColor)
         }
     }
 }

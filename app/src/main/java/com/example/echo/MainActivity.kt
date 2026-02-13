@@ -6,12 +6,13 @@ import android.os.Bundle
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
@@ -30,20 +31,19 @@ import androidx.compose.ui.unit.sp
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import android.graphics.Color as SysColor
+import kotlinx.coroutines.delay
 
 class MainActivity : ComponentActivity() {
 
     private lateinit var prefs: SharedPreferences
     private lateinit var googleAuthClient: GoogleAuthClient
 
-    // State to handle loading/errors across the activity
     private var isLoading = mutableStateOf(false)
     private var errorMessage = mutableStateOf("")
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // ---------- SYSTEM UI (UNCHANGED) ----------
         WindowCompat.setDecorFitsSystemWindows(window, false)
         window.statusBarColor = SysColor.TRANSPARENT
         window.navigationBarColor = SysColor.TRANSPARENT
@@ -57,31 +57,25 @@ class MainActivity : ComponentActivity() {
             isAppearanceLightNavigationBars = true
         }
 
-        // ---------- PREFS ----------
         prefs = getSharedPreferences("echo_prefs", MODE_PRIVATE)
 
-        // ✅ AUTO-LOGIN LOGIC
         if (prefs.getBoolean("logged_in", false)) {
             navigateToAi()
             return
         }
 
-        // ---------- GOOGLE AUTH (LOGIC FIX) ----------
         googleAuthClient = GoogleAuthClient(this) { success ->
             if (success) {
                 prefs.edit().putBoolean("logged_in", true).apply()
                 navigateToAi()
             } else {
-                // Reset UI if login fails so user can try again
                 isLoading.value = false
                 errorMessage.value = "Sign in failed. Please try again."
             }
         }
 
-        // ---------- UI ----------
         setContent {
             MaterialTheme {
-                // Passing the activity-level states to the UI
                 BlackLoginUI(
                     googleAuthClient = googleAuthClient,
                     loading = isLoading.value,
@@ -112,8 +106,36 @@ fun BlackLoginUI(
     error: String,
     onLoginClick: () -> Unit
 ) {
+    // --- 5 COLOR GOOGLE ANIMATION LOGIC ---
+    val googleColors = listOf(
+        Color(0xFF4285F4), // Google Blue
+        Color(0xFFEA4335), // Google Red
+        Color(0xFFFBBC05), // Google Yellow
+        Color(0xFF34A853), // Google Green
+        Color(0xFF1976D2)  // Deep Blue (5th color to complete the loop)
+    )
+
+    var colorIndex by remember { mutableIntStateOf(0) }
+
+    LaunchedEffect(loading) {
+        if (loading) {
+            while (true) {
+                // Delay reduced to 500ms for a more energetic "Google" feel
+                delay(500)
+                colorIndex = (colorIndex + 1) % googleColors.size
+            }
+        }
+    }
+
+    val animatedColor by animateColorAsState(
+        targetValue = googleColors[colorIndex],
+        // tween set to 500ms so it is constantly fading into the next brand color
+        animationSpec = tween(durationMillis = 500),
+        label = "GoogleColorAnimation"
+    )
+    // -------------------------------
+
     Box(modifier = Modifier.fillMaxSize()) {
-        // Background Image
         Image(
             painter = painterResource(id = R.drawable.bb),
             contentDescription = null,
@@ -129,7 +151,6 @@ fun BlackLoginUI(
         ) {
             Spacer(modifier = Modifier.weight(1f))
 
-            // White Bottom Sheet
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -137,7 +158,6 @@ fun BlackLoginUI(
                     .background(Color.White)
                     .padding(horizontal = 24.dp, vertical = 26.dp)
             ) {
-                // Handle bar
                 Box(
                     modifier = Modifier
                         .align(Alignment.CenterHorizontally)
@@ -150,11 +170,14 @@ fun BlackLoginUI(
                 Spacer(modifier = Modifier.height(22.dp))
 
                 if (loading) {
-                    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                        LoadingIndicator()
+                    Box(
+                        modifier = Modifier.fillMaxWidth().height(56.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        // Fixed: Now showing 5 colors
+                        LoadingIndicator(color = animatedColor)
                     }
                 } else {
-                    // Google Button
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -189,7 +212,7 @@ fun BlackLoginUI(
                     Text(
                         text = error,
                         fontSize = 13.sp,
-                        color = Color.Red, // Made red for visibility
+                        color = Color.Red,
                         modifier = Modifier.align(Alignment.CenterHorizontally)
                     )
                 }
