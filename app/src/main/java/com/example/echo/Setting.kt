@@ -240,7 +240,7 @@ fun SettingUI(onLogout: () -> Unit) {
         SettingRow("Echo App Realtime Database", true) { context.startActivity(Intent(context, DataBackupScreen::class.java)) }
         SettingRow("Permissions") { context.startActivity(Intent(context, PermissionsActivity::class.java)) }
         SettingRow("User") { }
-        SettingRow("Manage memory") {}
+        SettingRow("APP-Release") {context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/bharathappstudio/ECHO-APP/releases/tag/echo")))}
         SettingRow("Give feedback") { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://cal.com/ui-studio13"))) }
         SettingRow("Call to Developer") { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("tel:+917094589909"))) }
         SettingRow("About") { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/bharathappstudio"))) }
