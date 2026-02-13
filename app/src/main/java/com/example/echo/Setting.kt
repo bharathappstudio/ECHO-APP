@@ -3,6 +3,7 @@ package com.ai.Echo
 import android.content.Intent
 import android.content.SharedPreferences
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -55,6 +56,10 @@ class Setting : ComponentActivity() {
         WindowInsetsControllerCompat(window, window.decorView).apply {
             isAppearanceLightStatusBars = true
             isAppearanceLightNavigationBars = true
+        }
+        // Ensure navigation bar contrast is disabled to show background
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            window.isNavigationBarContrastEnforced = false
         }
 
         window.statusBarColor = android.graphics.Color.TRANSPARENT
@@ -120,7 +125,7 @@ fun SettingUI(onLogout: () -> Unit) {
                 colorIndex = (colorIndex + 1) % googleColors.size
             }
         }
-        delay(2000)
+        delay(2500)
         isProfileLoading = false
     }
 
@@ -232,11 +237,10 @@ fun SettingUI(onLogout: () -> Unit) {
 
         Spacer(Modifier.height(24.dp))
 
-        SettingRow("Echo App Realtime Database", true) { context.startActivity(Intent(context, Echo::class.java)) }
+        SettingRow("Echo App Realtime Database", true) { context.startActivity(Intent(context, DataBackupScreen::class.java)) }
         SettingRow("Permissions") { context.startActivity(Intent(context, PermissionsActivity::class.java)) }
-        SettingRow("Data & Backup") { context.startActivity(Intent(context, DataBackupScreen::class.java)) }
+        SettingRow("User") { }
         SettingRow("Manage memory") {}
-        SettingRow("User") {}
         SettingRow("Give feedback") { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://cal.com/ui-studio13"))) }
         SettingRow("Call to Developer") { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("tel:+917094589909"))) }
         SettingRow("About") { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/bharathappstudio"))) }

@@ -1,6 +1,7 @@
 package com.ai.Echo
 
 import android.annotation.SuppressLint
+import android.os.Build
 import android.os.Bundle
 import android.view.ViewGroup
 import android.webkit.WebChromeClient
@@ -45,6 +46,10 @@ class EchoWeb : ComponentActivity() {
             ViewGroup.LayoutParams.MATCH_PARENT,
             ViewGroup.LayoutParams.MATCH_PARENT
         )
+        // Ensure navigation bar contrast is disabled to show background
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            window.isNavigationBarContrastEnforced = false
+        }
 
         val settings: WebSettings = webView.settings
         settings.javaScriptEnabled = true

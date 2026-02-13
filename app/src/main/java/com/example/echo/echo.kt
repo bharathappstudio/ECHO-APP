@@ -1,5 +1,6 @@
 package com.ai.Echo
 
+import android.os.Build
 import android.graphics.Color as SysColor
 import android.os.Bundle
 import android.view.WindowManager
@@ -40,6 +41,10 @@ class Echo : ComponentActivity() {
             WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
             WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
         )
+        // Ensure navigation bar contrast is disabled to show background
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            window.isNavigationBarContrastEnforced = false
+        }
 
         WindowInsetsControllerCompat(window, window.decorView).apply {
             isAppearanceLightStatusBars = true
