@@ -254,7 +254,7 @@ fun UserAvatar(size: Dp = 40.dp, onClick: () -> Unit) {
                 colorIndex = (colorIndex + 1) % googleColors.size
             }
         }
-        delay(3000)
+        delay(2500)
         isInitialLoading = false
     }
 
@@ -283,7 +283,7 @@ fun UserAvatar(size: Dp = 40.dp, onClick: () -> Unit) {
         ) { loading ->
             if (loading) {
                 LoadingIndicator(
-                    modifier = Modifier.size(40.dp),
+                    modifier = Modifier.size(50.dp),
                     color = animatedColor
                 )
             } else {

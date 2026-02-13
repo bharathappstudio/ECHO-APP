@@ -6,18 +6,20 @@ import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.*
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState // Added for scroll
-import androidx.compose.foundation.verticalScroll // Added for scroll
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -39,6 +41,8 @@ import coil.compose.AsyncImage
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.firebase.auth.FirebaseAuth
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 class Setting : ComponentActivity() {
 
@@ -73,9 +77,7 @@ class Setting : ComponentActivity() {
                             prefs.edit().clear().apply()
                             startActivity(
                                 Intent(this, MainActivity::class.java).apply {
-                                    flags =
-                                        Intent.FLAG_ACTIVITY_NEW_TASK or
-                                                Intent.FLAG_ACTIVITY_CLEAR_TASK
+                                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                                 }
                             )
                             finish()
@@ -87,11 +89,12 @@ class Setting : ComponentActivity() {
     }
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class, ExperimentalAnimationApi::class)
 @Composable
 fun SettingUI(onLogout: () -> Unit) {
 
     val context = LocalContext.current
-    val scrollState = rememberScrollState() // ✅ Created scroll state
+    val scrollState = rememberScrollState()
 
     val user = FirebaseAuth.getInstance().currentUser
     val name = user?.displayName ?: "Unknown User"
@@ -102,11 +105,35 @@ fun SettingUI(onLogout: () -> Unit) {
         ?.replace("s96-c", "s4096-c")
         ?.replace("s400-c", "s4096-c")
 
+    // --- 5 SECOND LOADING LOGIC FOR PROFILE ---
+    var isProfileLoading by remember { mutableStateOf(true) }
+    val googleColors = listOf(
+        Color(0xFF4285F4), Color(0xFFEA4335), Color(0xFFFBBC05),
+        Color(0xFF34A853), Color(0xFF1976D2)
+    )
+    var colorIndex by remember { mutableIntStateOf(0) }
+
+    LaunchedEffect(Unit) {
+        launch {
+            while (isProfileLoading) {
+                delay(700)
+                colorIndex = (colorIndex + 1) % googleColors.size
+            }
+        }
+        delay(2000)
+        isProfileLoading = false
+    }
+
+    val animatedColor by animateColorAsState(
+        targetValue = googleColors[colorIndex],
+        animationSpec = tween(500),
+        label = ""
+    )
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(Color(0xFFFFF8E1))
-            // ✅ Applied navigationBarsPadding and verticalScroll
             .windowInsetsPadding(WindowInsets.statusBars)
             .verticalScroll(scrollState)
             .navigationBarsPadding()
@@ -127,21 +154,40 @@ fun SettingUI(onLogout: () -> Unit) {
 
         Row(verticalAlignment = Alignment.CenterVertically) {
 
-            if (photoUrl != null) {
-                AsyncImage(
-                    model = photoUrl,
-                    contentDescription = null,
-                    modifier = Modifier.size(56.dp).clip(CircleShape)
-                )
-            } else {
-                Box(
-                    modifier = Modifier
-                        .size(56.dp)
-                        .clip(CircleShape)
-                        .background(Color(0xFFF9FBE7)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(name.first().toString(), fontSize = 22.sp, fontWeight = FontWeight.Bold)
+            // ✅ Profile Image with 5-second Loading Indicator
+            Box(
+                modifier = Modifier.size(60.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                AnimatedContent(
+                    targetState = isProfileLoading,
+                    transitionSpec = {
+                        (fadeIn(tween(600)) + scaleIn(initialScale = 0.8f))
+                            .togetherWith(fadeOut(tween(600)))
+                    },
+                    label = ""
+                ) { loading ->
+                    if (loading) {
+                        LoadingIndicator(
+                            modifier = Modifier.size(56.dp),
+                            color = animatedColor
+                        )
+                    } else {
+                        if (photoUrl != null) {
+                            AsyncImage(
+                                model = photoUrl,
+                                contentDescription = null,
+                                modifier = Modifier.fillMaxSize().clip(CircleShape)
+                            )
+                        } else {
+                            Box(
+                                modifier = Modifier.fillMaxSize().clip(CircleShape).background(Color(0xFFF9FBE7)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(name.first().toString(), fontSize = 22.sp, fontWeight = FontWeight.Bold)
+                            }
+                        }
+                    }
                 }
             }
 
@@ -155,28 +201,12 @@ fun SettingUI(onLogout: () -> Unit) {
 
         Spacer(Modifier.height(20.dp))
 
+        // --- Rest of your UI remains exactly the same ---
         val transition = rememberInfiniteTransition(label = "bubbles")
-
-        val up1 by transition.animateFloat(
-            -120f, 120f,
-            infiniteRepeatable(tween(7000, easing = FastOutSlowInEasing), RepeatMode.Reverse),
-            label = ""
-        )
-        val up2 by transition.animateFloat(
-            120f, -120f,
-            infiniteRepeatable(tween(9000, easing = FastOutSlowInEasing), RepeatMode.Reverse),
-            label = ""
-        )
-        val side1 by transition.animateFloat(
-            -50f, 50f,
-            infiniteRepeatable(tween(8000, easing = FastOutSlowInEasing), RepeatMode.Reverse),
-            label = ""
-        )
-        val side2 by transition.animateFloat(
-            50f, -50f,
-            infiniteRepeatable(tween(10000, easing = FastOutSlowInEasing), RepeatMode.Reverse),
-            label = ""
-        )
+        val up1 by transition.animateFloat(-120f, 120f, infiniteRepeatable(tween(7000, easing = FastOutSlowInEasing), RepeatMode.Reverse), label = "")
+        val up2 by transition.animateFloat(120f, -120f, infiniteRepeatable(tween(9000, easing = FastOutSlowInEasing), RepeatMode.Reverse), label = "")
+        val side1 by transition.animateFloat(-50f, 50f, infiniteRepeatable(tween(8000, easing = FastOutSlowInEasing), RepeatMode.Reverse), label = "")
+        val side2 by transition.animateFloat(50f, -50f, infiniteRepeatable(tween(10000, easing = FastOutSlowInEasing), RepeatMode.Reverse), label = "")
 
         Box(
             modifier = Modifier
@@ -185,15 +215,9 @@ fun SettingUI(onLogout: () -> Unit) {
                 .clip(RoundedCornerShape(20.dp))
                 .border(2.dp, Color.White, RoundedCornerShape(20.dp))
                 .background(Color(0xFFFFECB3))
-                .clickable {
-                    context.startActivity(
-                        Intent(context, EchoWeb::class.java)
-                    )
-                }
+                .clickable { context.startActivity(Intent(context, EchoWeb::class.java)) }
         ) {
-
             val bubbleColor = Color(0xFFFAFAF7).copy(alpha = 0.75f)
-
             Box(Modifier.size(22.dp).offset(30.dp + side1.dp, up1.dp).background(bubbleColor, CircleShape))
             Box(Modifier.size(18.dp).offset(70.dp, up2.dp).background(bubbleColor, CircleShape))
             Box(Modifier.size(14.dp).offset(120.dp + side2.dp, up1.dp + 30.dp).background(bubbleColor, CircleShape))
@@ -202,56 +226,24 @@ fun SettingUI(onLogout: () -> Unit) {
             Column(Modifier.fillMaxSize().padding(16.dp)) {
                 Text("Get the best of Echo 🫐", fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
                 Spacer(Modifier.height(4.dp))
-                Text(
-                    "Higher limits, cloud storage,in Realtime Database Echo built in Ai",
-                    fontSize = 13.sp,
-                    color = Color(0xCC4E4E4E)
-                )
+                Text("Higher limits, cloud storage,in Realtime Database Echo built in Ai", fontSize = 13.sp, color = Color(0xCC4E4E4E))
             }
         }
 
         Spacer(Modifier.height(24.dp))
 
-        SettingRow(
-            "Echo App Realtime Database",
-            true
-        ) {
-            context.startActivity(
-                Intent(context, Echo::class.java)
-            )
-        }
-
-        SettingRow("Permissions") {
-            context.startActivity(Intent(context, PermissionsActivity::class.java))
-        }
-
-        SettingRow("Data & Backup") {
-            context.startActivity(
-                Intent(context, DataBackupScreen::class.java)
-            )
-        }
-
+        SettingRow("Echo App Realtime Database", true) { context.startActivity(Intent(context, Echo::class.java)) }
+        SettingRow("Permissions") { context.startActivity(Intent(context, PermissionsActivity::class.java)) }
+        SettingRow("Data & Backup") { context.startActivity(Intent(context, DataBackupScreen::class.java)) }
         SettingRow("Manage memory") {}
         SettingRow("User") {}
-        SettingRow("Give feedback") {
-            context.startActivity(
-                Intent(Intent.ACTION_VIEW, Uri.parse("https://cal.com/ui-studio13"))
-            )
-        }
-        SettingRow("Call to Developer") {
-            context.startActivity(
-                Intent(Intent.ACTION_VIEW, Uri.parse("tel:+917094589909"))
-            )
-        }
-        SettingRow("About") {
-            context.startActivity(
-                Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/bharathappstudio"))
-            )
-        }
+        SettingRow("Give feedback") { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://cal.com/ui-studio13"))) }
+        SettingRow("Call to Developer") { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("tel:+917094589909"))) }
+        SettingRow("About") { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/bharathappstudio"))) }
 
         Spacer(Modifier.height(24.dp))
 
-        Row(Modifier.fillMaxWidth().padding(bottom = 0.dp), horizontalArrangement = Arrangement.Center) {
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
             TextButton(onClick = onLogout) { Text("Sign out") }
         }
     }
