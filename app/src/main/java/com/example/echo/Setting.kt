@@ -156,7 +156,7 @@ fun SettingUI(onLogout: () -> Unit) {
 
             // ✅ Profile Image with 5-second Loading Indicator
             Box(
-                modifier = Modifier.size(60.dp),
+                modifier = Modifier.size(55.dp),
                 contentAlignment = Alignment.Center
             ) {
                 AnimatedContent(
