@@ -51,10 +51,6 @@
             android:exported="false" />
 
         <activity
-            android:name=".Echo"
-            android:exported="false" />
-
-        <activity
             android:name=".DataBackupScreen"
             android:exported="false" />
 
