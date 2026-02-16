@@ -110,6 +110,8 @@ import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.togetherWith
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.graphics.BlendMode
 import kotlinx.coroutines.delay
 
 // ===================== ======================== =====================
@@ -237,31 +239,40 @@ fun EmptyChatImage() {
 fun UserAvatar(size: Dp = 40.dp, onClick: () -> Unit) {
     val user = FirebaseAuth.getInstance().currentUser
     val name = user?.displayName ?: "U"
-    val photoUrl = user?.photoUrl?.toString()?.replace("s96-c", "s4096-c")
+    val photoUrl = user?.photoUrl?.toString()?.replace("s4096-c", "s4096-c")
 
-    // --- 5 SECOND LOADING LOGIC ---
+    // --- LOADING LOGIC ---
     var isInitialLoading by remember { mutableStateOf(true) }
     val googleColors = listOf(
         Color(0xFF4285F4), Color(0xFFEA4335), Color(0xFFFBBC05),
         Color(0xFF34A853), Color(0xFF1976D2)
     )
-    var colorIndex by remember { mutableIntStateOf(0) }
+
+    // Using two indices for a 2-color gradient
+    var colorIndex1 by remember { mutableIntStateOf(0) }
+    var colorIndex2 by remember { mutableIntStateOf(1) }
 
     LaunchedEffect(Unit) {
         launch {
             while (isInitialLoading) {
                 delay(500)
-                colorIndex = (colorIndex + 1) % googleColors.size
+                colorIndex1 = (colorIndex1 + 1) % googleColors.size
+                colorIndex2 = (colorIndex2 + 1) % googleColors.size
             }
         }
         delay(2500)
         isInitialLoading = false
     }
 
-    val animatedColor by animateColorAsState(
-        targetValue = googleColors[colorIndex],
+    val animatedColor1 by animateColorAsState(
+        targetValue = googleColors[colorIndex1],
         animationSpec = tween(durationMillis = 500),
-        label = "AvatarColor"
+        label = "Color1"
+    )
+    val animatedColor2 by animateColorAsState(
+        targetValue = googleColors[colorIndex2],
+        animationSpec = tween(durationMillis = 500),
+        label = "Color2"
     )
 
     Box(
@@ -272,7 +283,6 @@ fun UserAvatar(size: Dp = 40.dp, onClick: () -> Unit) {
             .clickable { if (!isInitialLoading) onClick() },
         contentAlignment = Alignment.Center
     ) {
-        // ✅ Added AnimatedContent for smooth transition
         AnimatedContent(
             targetState = isInitialLoading,
             transitionSpec = {
@@ -282,9 +292,21 @@ fun UserAvatar(size: Dp = 40.dp, onClick: () -> Unit) {
             label = "AvatarTransition"
         ) { loading ->
             if (loading) {
+                // ✅ This draws your LoadingIndicator with a 2-color gradient overlay
                 LoadingIndicator(
-                    modifier = Modifier.size(50.dp),
-                    color = animatedColor
+                    modifier = Modifier
+                        .size(50.dp)
+                        .graphicsLayer(alpha = 0.99f) // Enables clean blending
+                        .drawWithContent {
+                            drawContent() // Draws the original indicator
+                            drawRect(
+                                brush = Brush.linearGradient(
+                                    colors = listOf(animatedColor1, animatedColor2)
+                                ),
+                                blendMode = BlendMode.SrcAtop // Only colors the indicator parts
+                            )
+                        },
+                    color = animatedColor1 // Base color requirement
                 )
             } else {
                 if (photoUrl != null) {
@@ -298,7 +320,7 @@ fun UserAvatar(size: Dp = 40.dp, onClick: () -> Unit) {
                     )
                 } else {
                     Text(
-                        text = name.first().toString(),
+                        text = name.first().toString().uppercase(),
                         fontSize = 16.sp,
                         fontWeight = FontWeight.SemiBold,
                         color = Color.Black.copy(alpha = 0.8f)

@@ -21,7 +21,12 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.BlendMode
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.CompositingStrategy
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -32,6 +37,7 @@ import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import android.graphics.Color as SysColor
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
 
@@ -106,34 +112,36 @@ fun BlackLoginUI(
     error: String,
     onLoginClick: () -> Unit
 ) {
-    // --- 5 COLOR GOOGLE ANIMATION LOGIC ---
+    // --- 2-COLOR GRADIENT ANIMATION LOGIC ---
+    var isProfileLoading by remember { mutableStateOf(true) }
     val googleColors = listOf(
-        Color(0xFF4285F4), // Google Blue
-        Color(0xFFEA4335), // Google Red
-        Color(0xFFFBBC05), // Google Yellow
-        Color(0xFF34A853), // Google Green
-        Color(0xFF1976D2)  // Deep Blue (5th color to complete the loop)
+        Color(0xFF7E57C2), Color(0xFFEF5350), Color(0xFFFFEE58),
+        Color(0xFF5C6BC0), Color(0xFF66BB6A)
     )
 
-    var colorIndex by remember { mutableIntStateOf(0) }
+    var colorIndex1 by remember { mutableIntStateOf(0) }
+    var colorIndex2 by remember { mutableIntStateOf(1) }
 
     LaunchedEffect(loading) {
         if (loading) {
             while (true) {
-                // Delay reduced to 500ms for a more energetic "Google" feel
-                delay(500)
-                colorIndex = (colorIndex + 1) % googleColors.size
+                delay(600)
+                colorIndex1 = (colorIndex1 + 1) % googleColors.size
+                colorIndex2 = (colorIndex2 + 1) % googleColors.size
             }
         }
     }
 
-    val animatedColor by animateColorAsState(
-        targetValue = googleColors[colorIndex],
-        // tween set to 500ms so it is constantly fading into the next brand color
-        animationSpec = tween(durationMillis = 500),
-        label = "GoogleColorAnimation"
+    val animatedColor1 by animateColorAsState(
+        targetValue = googleColors[colorIndex1],
+        animationSpec = tween(durationMillis = 600),
+        label = "C1"
     )
-    // -------------------------------
+    val animatedColor2 by animateColorAsState(
+        targetValue = googleColors[colorIndex2],
+        animationSpec = tween(durationMillis = 600),
+        label = "C2"
+    )
 
     Box(modifier = Modifier.fillMaxSize()) {
         Image(
@@ -174,8 +182,22 @@ fun BlackLoginUI(
                         modifier = Modifier.fillMaxWidth().height(56.dp),
                         contentAlignment = Alignment.Center
                     ) {
-                        // Fixed: Now showing 5 colors
-                        LoadingIndicator(color = animatedColor)
+                        // ✅ FIXED: LoadingIndicator now uses 2-color gradient
+                        LoadingIndicator(
+                            modifier = Modifier
+                                .size(50.dp)
+                                .graphicsLayer(compositingStrategy = CompositingStrategy.Offscreen)
+                                .drawWithContent {
+                                    drawContent()
+                                    drawRect(
+                                        brush = Brush.linearGradient(
+                                            colors = listOf(animatedColor1, animatedColor2)
+                                        ),
+                                        blendMode = BlendMode.SrcAtop
+                                    )
+                                },
+                            color = animatedColor1
+                        )
                     }
                 } else {
                     Box(

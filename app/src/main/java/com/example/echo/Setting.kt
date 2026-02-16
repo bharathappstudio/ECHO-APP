@@ -31,7 +31,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.*
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -57,7 +58,6 @@ class Setting : ComponentActivity() {
             isAppearanceLightStatusBars = true
             isAppearanceLightNavigationBars = true
         }
-        // Ensure navigation bar contrast is disabled to show background
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             window.isNavigationBarContrastEnforced = false
         }
@@ -110,30 +110,31 @@ fun SettingUI(onLogout: () -> Unit) {
         ?.replace("s96-c", "s4096-c")
         ?.replace("s400-c", "s4096-c")
 
-    // --- 5 SECOND LOADING LOGIC FOR PROFILE ---
+    // --- 2-COLOR GRADIENT LOADING LOGIC ---
     var isProfileLoading by remember { mutableStateOf(true) }
     val googleColors = listOf(
-        Color(0xFF4285F4), Color(0xFFEA4335), Color(0xFFFBBC05),
-        Color(0xFF34A853), Color(0xFF1976D2)
+        Color(0xFF7E57C2), Color(0xFFEF5350), Color(0xFFFFEE58),
+        Color(0xFF5C6BC0), Color(0xFF66BB6A)
     )
-    var colorIndex by remember { mutableIntStateOf(0) }
+
+    // Two indices to create the gradient
+    var colorIndex1 by remember { mutableIntStateOf(0) }
+    var colorIndex2 by remember { mutableIntStateOf(1) }
 
     LaunchedEffect(Unit) {
         launch {
             while (isProfileLoading) {
                 delay(700)
-                colorIndex = (colorIndex + 1) % googleColors.size
+                colorIndex1 = (colorIndex1 + 1) % googleColors.size
+                colorIndex2 = (colorIndex2 + 1) % googleColors.size
             }
         }
-        delay(2500)
+        delay(4000)
         isProfileLoading = false
     }
 
-    val animatedColor by animateColorAsState(
-        targetValue = googleColors[colorIndex],
-        animationSpec = tween(500),
-        label = ""
-    )
+    val animatedColor1 by animateColorAsState(targetValue = googleColors[colorIndex1], animationSpec = tween(500))
+    val animatedColor2 by animateColorAsState(targetValue = googleColors[colorIndex2], animationSpec = tween(500))
 
     Column(
         modifier = Modifier
@@ -159,7 +160,6 @@ fun SettingUI(onLogout: () -> Unit) {
 
         Row(verticalAlignment = Alignment.CenterVertically) {
 
-            // ✅ Profile Image with 5-second Loading Indicator
             Box(
                 modifier = Modifier.size(55.dp),
                 contentAlignment = Alignment.Center
@@ -173,9 +173,21 @@ fun SettingUI(onLogout: () -> Unit) {
                     label = ""
                 ) { loading ->
                     if (loading) {
+                        // ✅ Gradient Fix: No Error, uses BlendMode to apply 2-color brush
                         LoadingIndicator(
-                            modifier = Modifier.size(56.dp),
-                            color = animatedColor
+                            modifier = Modifier
+                                .size(56.dp)
+                                .graphicsLayer(compositingStrategy = CompositingStrategy.Offscreen)
+                                .drawWithContent {
+                                    drawContent()
+                                    drawRect(
+                                        brush = Brush.linearGradient(
+                                            colors = listOf(animatedColor1, animatedColor2)
+                                        ),
+                                        blendMode = BlendMode.SrcAtop
+                                    )
+                                },
+                            color = animatedColor1
                         )
                     } else {
                         if (photoUrl != null) {
@@ -206,7 +218,7 @@ fun SettingUI(onLogout: () -> Unit) {
 
         Spacer(Modifier.height(20.dp))
 
-        // --- Rest of your UI remains exactly the same ---
+        // --- Rest of the UI (Bubbles and Rows) remains identical ---
         val transition = rememberInfiniteTransition(label = "bubbles")
         val up1 by transition.animateFloat(-120f, 120f, infiniteRepeatable(tween(7000, easing = FastOutSlowInEasing), RepeatMode.Reverse), label = "")
         val up2 by transition.animateFloat(120f, -120f, infiniteRepeatable(tween(9000, easing = FastOutSlowInEasing), RepeatMode.Reverse), label = "")
