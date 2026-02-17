@@ -53,6 +53,9 @@
         <activity
             android:name=".DataBackupScreen"
             android:exported="false" />
+        <activity
+            android:name=".EchoActivity"
+            android:exported="false" />
 
     </application>
 
