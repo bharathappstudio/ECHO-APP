@@ -16,10 +16,26 @@ android {
         versionName = "1.0"
     }
 
+    // --- ADD THIS BLOCK ---
+    signingConfigs {
+        create("release") {
+            // Replace with your actual path and credentials
+            storeFile = file("/home/asus-s14/StudioProjects/ECho.jks")
+            storePassword = "jarvisbharath07"
+            keyAlias = "key13"
+            keyPassword = "jarvisbharath07"
+        }
+    }
+    // -----------------------
+
     buildTypes {
         release {
-            isMinifyEnabled = true
-            isShrinkResources = true
+            signingConfig = signingConfigs.getByName("release")
+
+            // 1. Change these to 'false' to test if this is the cause
+            isMinifyEnabled = false
+            isShrinkResources = false
+
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -44,7 +60,6 @@ android {
     }
 
     composeOptions {
-        // Keeping your stable version
         kotlinCompilerExtensionVersion = "1.5.15"
     }
 
