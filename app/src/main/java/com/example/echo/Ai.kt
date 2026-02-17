@@ -243,25 +243,35 @@ fun UserAvatar(size: Dp = 40.dp, onClick: () -> Unit) {
 
     // --- LOADING LOGIC ---
     var isInitialLoading by remember { mutableStateOf(true) }
+
     val googleColors = listOf(
-        Color(0xFF4285F4), Color(0xFFEA4335), Color(0xFFFBBC05),
-        Color(0xFF34A853), Color(0xFF1976D2)
+        Color(0xFF4285F4), // Google Blue (Primary)
+        Color(0xFFEA4335), // Google Red
+        Color(0xFFFBBC05), // Google Yellow
+        Color(0xFF34A853), // Google Green
+        Color(0xFF1A73E8)  // Google Blue (Alternative/Darker)
     )
 
     // Using two indices for a 2-color gradient
+    // Use mutableIntStateOf for better performance with Integers
     var colorIndex1 by remember { mutableIntStateOf(0) }
     var colorIndex2 by remember { mutableIntStateOf(1) }
 
-    LaunchedEffect(Unit) {
-        launch {
-            while (isInitialLoading) {
-                delay(500)
-                colorIndex1 = (colorIndex1 + 1) % googleColors.size
-                colorIndex2 = (colorIndex2 + 1) % googleColors.size
+    LaunchedEffect(isInitialLoading) {
+        if (isInitialLoading) {
+            // This Coroutine handles the color cycling
+            launch {
+                while (true) {
+                    delay(500)
+                    colorIndex1 = (colorIndex1 + 1) % googleColors.size
+                    colorIndex2 = (colorIndex2 + 1) % googleColors.size
+                }
             }
+
+            // This timer stops the loading after 2.5 seconds
+            delay(2500)
+            isInitialLoading = false
         }
-        delay(2500)
-        isInitialLoading = false
     }
 
     val animatedColor1 by animateColorAsState(

@@ -110,31 +110,40 @@ fun SettingUI(onLogout: () -> Unit) {
         ?.replace("s96-c", "s4096-c")
         ?.replace("s400-c", "s4096-c")
 
-    // --- 2-COLOR GRADIENT LOADING LOGIC ---
+    // --- 3-COLOR GRADIENT LOADING LOGIC ---
     var isProfileLoading by remember { mutableStateOf(true) }
+
     val googleColors = listOf(
-        Color(0xFF7E57C2), Color(0xFFEF5350), Color(0xFFFFEE58),
-        Color(0xFF5C6BC0), Color(0xFF66BB6A)
+        Color(0xFF8AB4F8), // Medium Blue
+        Color(0xFFF28B82), // Medium Red
+        Color(0xFFFDD663), // Medium Yellow
+        Color(0xFF81C995), // Medium Green
+        Color(0xFF669DF6)  // Medium Secondary Blue
     )
 
-    // Two indices to create the gradient
     var colorIndex1 by remember { mutableIntStateOf(0) }
     var colorIndex2 by remember { mutableIntStateOf(1) }
+    var colorIndex3 by remember { mutableIntStateOf(2) }
 
-    LaunchedEffect(Unit) {
-        launch {
-            while (isProfileLoading) {
-                delay(700)
-                colorIndex1 = (colorIndex1 + 1) % googleColors.size
-                colorIndex2 = (colorIndex2 + 1) % googleColors.size
+    LaunchedEffect(isProfileLoading) {
+        if (isProfileLoading) {
+            launch {
+                while (true) {
+                    delay(700)
+                    colorIndex1 = (colorIndex1 + 1) % googleColors.size
+                    colorIndex2 = (colorIndex2 + 1) % googleColors.size
+                    colorIndex3 = (colorIndex3 + 1) % googleColors.size
+                }
             }
+            delay(4000)
+            isProfileLoading = false
         }
-        delay(4000)
-        isProfileLoading = false
     }
 
-    val animatedColor1 by animateColorAsState(targetValue = googleColors[colorIndex1], animationSpec = tween(500))
-    val animatedColor2 by animateColorAsState(targetValue = googleColors[colorIndex2], animationSpec = tween(500))
+    // Animated colors assigned to c1, c2, c3
+    val c1 by animateColorAsState(googleColors[colorIndex1], animationSpec = tween(600))
+    val c2 by animateColorAsState(googleColors[colorIndex2], animationSpec = tween(600))
+    val c3 by animateColorAsState(googleColors[colorIndex3], animationSpec = tween(600))
 
     Column(
         modifier = Modifier
@@ -173,7 +182,7 @@ fun SettingUI(onLogout: () -> Unit) {
                     label = ""
                 ) { loading ->
                     if (loading) {
-                        // ✅ Gradient Fix: No Error, uses BlendMode to apply 2-color brush
+                        // ✅ FIX: Using c1, c2, c3 which match the defined variables above
                         LoadingIndicator(
                             modifier = Modifier
                                 .size(56.dp)
@@ -182,12 +191,12 @@ fun SettingUI(onLogout: () -> Unit) {
                                     drawContent()
                                     drawRect(
                                         brush = Brush.linearGradient(
-                                            colors = listOf(animatedColor1, animatedColor2)
+                                            colors = listOf(c1, c2, c3)
                                         ),
                                         blendMode = BlendMode.SrcAtop
                                     )
                                 },
-                            color = animatedColor1
+                            color = Color.White
                         )
                     } else {
                         if (photoUrl != null) {
@@ -218,7 +227,7 @@ fun SettingUI(onLogout: () -> Unit) {
 
         Spacer(Modifier.height(20.dp))
 
-        // --- Rest of the UI (Bubbles and Rows) remains identical ---
+        // Bubble Animation Logic
         val transition = rememberInfiniteTransition(label = "bubbles")
         val up1 by transition.animateFloat(-120f, 120f, infiniteRepeatable(tween(7000, easing = FastOutSlowInEasing), RepeatMode.Reverse), label = "")
         val up2 by transition.animateFloat(120f, -120f, infiniteRepeatable(tween(9000, easing = FastOutSlowInEasing), RepeatMode.Reverse), label = "")
@@ -243,7 +252,7 @@ fun SettingUI(onLogout: () -> Unit) {
             Column(Modifier.fillMaxSize().padding(16.dp)) {
                 Text("Get the best of Echo 🫐", fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
                 Spacer(Modifier.height(4.dp))
-                Text("Higher limits, cloud storage,in Realtime Database Echo built in Ai", fontSize = 13.sp, color = Color(0xCC4E4E4E))
+                Text("Higher limits, cloud storage, in Realtime Database Echo built in Ai", fontSize = 13.sp, color = Color(0xCC4E4E4E))
             }
         }
 
@@ -252,7 +261,7 @@ fun SettingUI(onLogout: () -> Unit) {
         SettingRow("Echo App Realtime Database", true) { context.startActivity(Intent(context, DataBackupScreen::class.java)) }
         SettingRow("Permissions") { context.startActivity(Intent(context, PermissionsActivity::class.java)) }
         SettingRow("User") { }
-        SettingRow("APP-Release") {context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/bharathappstudio/ECHO-APP/releases/tag/echo")))}
+        SettingRow("APP-Release") { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/bharathappstudio/ECHO-APP/releases/tag/echo"))) }
         SettingRow("Give feedback") { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://cal.com/ui-studio13"))) }
         SettingRow("Call to Developer") { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("tel:+917094589909"))) }
         SettingRow("About") { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/bharathappstudio"))) }
