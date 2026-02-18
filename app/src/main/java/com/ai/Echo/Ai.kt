@@ -113,10 +113,6 @@ import androidx.compose.ui.draw.blur
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.togetherWith
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.BlendMode
 import kotlinx.coroutines.delay
@@ -308,7 +304,7 @@ fun EchoTopBar() {
 @Composable
 fun ChatApp() {
     val openRouterManager = remember {
-        OpenRouterManager(apiKey = "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")
+        OpenRouterManager(apiKey = "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")
     }
 
     Box(Modifier.fillMaxSize()) {
