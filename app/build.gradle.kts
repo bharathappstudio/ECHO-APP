@@ -116,7 +116,8 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0")
 
     // ---------------- Gemini AI ----------------
-    implementation("com.google.ai.client.generativeai:generativeai:0.9.0")
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+    implementation("org.json:json:20231013")
 
     // ---------------- JavaMail ----------------
     implementation("com.sun.mail:android-mail:1.6.7")
