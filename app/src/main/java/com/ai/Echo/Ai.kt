@@ -437,30 +437,95 @@ fun ChatScreen(apiManager: OpenRouterManager) {
 @Composable
 fun ChatBubble(msg: ChatMessage, onLongPress: () -> Unit) {
     val isUser = msg.isUser
-    val bubbleShape = RoundedCornerShape(topStart = 22.dp, topEnd = 22.dp, bottomStart = if (isUser) 22.dp else 8.dp, bottomEnd = if (isUser) 5.dp else 22.dp)
-    Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 5.dp), horizontalArrangement = if (isUser) Arrangement.End else Arrangement.Start) {
-        Column(modifier = Modifier.pointerInput(Unit) { detectTapGestures(onLongPress = { onLongPress() }) }.widthIn(max = 320.dp).clip(bubbleShape).background(if (isUser) Color(0x66C8E6C9) else Color(0x80FFECB3).copy(alpha = 0.45f)).border(1.dp, Color.White.copy(alpha = 0.80f), bubbleShape).padding(horizontal = 16.dp, vertical = 12.dp)) {
+    val bubbleShape = RoundedCornerShape(
+        topStart = 22.dp,
+        topEnd = 22.dp,
+        bottomStart = if (isUser) 22.dp else 8.dp,
+        bottomEnd = if (isUser) 5.dp else 22.dp
+    )
+
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 0.dp, vertical = 10.dp),
+        horizontalArrangement = if (isUser) Arrangement.End else Arrangement.Start
+    ) {
+        Column(
+            modifier = Modifier
+                .pointerInput(Unit) { detectTapGestures(onLongPress = { onLongPress() }) }
+                .widthIn(max = 320.dp)
+                .clip(bubbleShape)
+                .background(if (isUser) Color(0x66C8E6C9) else Color(0x80FFECB3).copy(alpha = 0.45f))
+                .border(1.dp, Color.White.copy(alpha = 0.80f), bubbleShape)
+                .padding(horizontal = 10.dp, vertical = 12.dp)
+        ) {
             if (msg.imageUri != null) {
-                Card(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(16.dp)) {
-                    AsyncImage(model = msg.imageUri, contentDescription = null, modifier = Modifier.fillMaxWidth().aspectRatio(1.6f), contentScale = ContentScale.Crop)
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    elevation = CardDefaults.cardElevation(4.dp)
+                ) {
+                    AsyncImage(
+                        model = msg.imageUri,
+                        contentDescription = null,
+                        modifier = Modifier.fillMaxWidth().aspectRatio(1.6f),
+                        contentScale = ContentScale.Crop
+                    )
                 }
                 Spacer(Modifier.height(10.dp))
             }
-            Text(text = parseMarkdown(msg.text), fontSize = 16.sp, lineHeight = 22.sp, color = Color.Black.copy(alpha = 0.7f))
+
+            Text(
+                text = parseMarkdown(msg.text),
+                fontSize = 16.sp,
+                lineHeight = 22.sp,
+                color = Color(0xB3000000) // Light gray modern tone
+            )
         }
     }
 }
 
 @Composable
 fun InputBar(text: String, onChange: (String) -> Unit, onSend: () -> Unit, onImageClick: () -> Unit) {
-    Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 5.dp, vertical = 10.dp).clip(RoundedCornerShape(30.dp)).background(Color.White.copy(alpha = 0.9f)).border(1.dp, Color.White.copy(alpha = 0.30f), RoundedCornerShape(30.dp)).padding(horizontal = 10.dp, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
-        IconButton(onClick = onImageClick, modifier = Modifier.size(42.dp).clip(CircleShape).background(Color.White.copy(alpha = 0.25f)).border(1.dp, Color.White.copy(alpha = 0.35f), CircleShape)) {
-            Icon(painter = painterResource(id = R.drawable.folder), contentDescription = null, modifier = Modifier.size(24.dp))
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 5.dp, vertical = 10.dp)
+            .clip(RoundedCornerShape(30.dp))
+            .background(Color.White.copy(alpha = 55f))
+            .border(1.dp, Color.White.copy(alpha = 0.30f), RoundedCornerShape(30.dp))
+            .padding(horizontal = 10.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        IconButton(
+            onClick = onImageClick,
+            modifier = Modifier.size(42.dp).clip(CircleShape).background(Color.White.copy(alpha = 0.25f)).border(1.dp, Color.White.copy(alpha = 0.35f), CircleShape)
+        ) {
+            Icon(painter = painterResource(id = R.drawable.folder), contentDescription = null, tint = Color.Black.copy(alpha = 0.85f), modifier = Modifier.size(24.dp))
         }
+
         Spacer(Modifier.width(10.dp))
-        TextField(value = text, onValueChange = onChange, modifier = Modifier.weight(1f), placeholder = { Text("Ask Echo…", color = Color.Black.copy(alpha = 0.45f)) }, singleLine = true, colors = TextFieldDefaults.colors(focusedContainerColor = Color.Transparent, unfocusedContainerColor = Color.Transparent, focusedIndicatorColor = Color.Transparent, unfocusedIndicatorColor = Color.Transparent))
+
+        TextField(
+            value = text,
+            onValueChange = onChange,
+            modifier = Modifier.weight(1f),
+            placeholder = { Text("Ask Echo…", color = Color.Black.copy(alpha = 0.45f)) },
+            singleLine = true,
+            colors = TextFieldDefaults.colors(
+                focusedContainerColor = Color.Transparent,
+                unfocusedContainerColor = Color.Transparent,
+                focusedIndicatorColor = Color.Transparent,
+                unfocusedIndicatorColor = Color.Transparent,
+                cursorColor = Color.Black
+            )
+        )
+
         Spacer(Modifier.width(10.dp))
-        IconButton(onClick = onSend, enabled = text.isNotBlank(), modifier = Modifier.size(46.dp).clip(CircleShape).background(if (text.isNotBlank()) Color.Black else Color.Black.copy(alpha = 0.25f))) {
+
+        IconButton(
+            onClick = onSend,
+            enabled = text.isNotBlank(),
+            modifier = Modifier.size(46.dp).clip(CircleShape).background(if (text.isNotBlank()) Color.Black else Color.Black.copy(alpha = 0.25f))
+        ) {
             Icon(painter = painterResource(id = R.drawable.send), contentDescription = null, tint = Color.White)
         }
     }
