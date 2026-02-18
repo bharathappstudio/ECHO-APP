@@ -321,7 +321,7 @@ fun ChatApp() {
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun ContainedLoadingIndicator() {
-    val smileyColors = listOf(Color(0xFFFFC107), Color(0xFFF44336), Color(0xFFE91E63), Color(0xFF4CAF50))
+    val smileyColors = listOf(Color(0xFF4285F4), Color(0xFFEA4335), Color(0xFFFBBC05), Color(0xFF34A853))
     var colorIndex by remember { mutableIntStateOf(0) }
     LaunchedEffect(Unit) { while (true) { delay(800); colorIndex = (colorIndex + 1) % smileyColors.size } }
     val animatedColor by animateColorAsState(targetValue = smileyColors[colorIndex], animationSpec = tween(600))
