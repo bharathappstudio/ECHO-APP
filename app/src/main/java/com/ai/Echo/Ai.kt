@@ -14,19 +14,14 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.util.Base64
-import android.view.WindowManager
-import android.graphics.Color as SysColor
 import java.io.ByteArrayOutputStream
-
 // ===================== ACTIVITY + COMPOSE =====================
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
-
 // ===================== COMPOSE UI =====================
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.core.*
@@ -47,15 +42,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.*
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsControllerCompat
-
 // ===================== 🔧 SAFE EXPLICIT TEXT IMPORTS (FIX) =====================
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
-
 // ===================== IMAGE LOADING =====================
 import coil.compose.AsyncImage
-
 // ===================== OPEN ROUTER / NETWORKING =====================
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaType
@@ -64,22 +56,18 @@ import org.json.JSONArray
 import org.json.JSONObject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-
 // ===================== FIREBASE =====================
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
 import com.google.firebase.database.IgnoreExtraProperties
-
 // ===================== COROUTINES =====================
 import kotlinx.coroutines.launch
-
 // ===================== CORE =====================
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-
 // ===================== LAYOUT =====================
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -88,24 +76,20 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.heightIn
-
 // ===================== FOUNDATION =====================
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-
 // ===================== ALIGNMENT =====================
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-
 // ===================== MATERIAL 3 =====================
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
-
 // ===================== UNITS =====================
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.graphics.Brush
@@ -116,7 +100,6 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.BlendMode
 import kotlinx.coroutines.delay
-
 // ======================================================
 // OPEN ROUTER CLIENT HELPER (REPLACES GEMINI SDK)
 // ======================================================
