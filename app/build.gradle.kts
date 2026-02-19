@@ -108,6 +108,8 @@ dependencies {
     implementation(platform("com.google.firebase:firebase-bom:33.7.0"))
     implementation("com.google.firebase:firebase-auth")
     implementation("com.google.firebase:firebase-database")
+    implementation("com.google.firebase:firebase-messaging-ktx")
+    implementation(platform("com.google.firebase:firebase-bom:33.1.0"))
 
     // ---------------- Networking / Coroutines ----------------
     implementation("com.squareup.okhttp3:okhttp:4.12.0")

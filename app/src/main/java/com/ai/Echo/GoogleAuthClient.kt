@@ -10,6 +10,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
+import com.google.firebase.messaging.FirebaseMessaging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -18,77 +19,39 @@ class GoogleAuthClient(
     private val activity: ComponentActivity,
     private val onResult: (Boolean) -> Unit
 ) {
-
     private val firebaseAuth: FirebaseAuth = FirebaseAuth.getInstance()
 
     private val googleSignInClient: GoogleSignInClient by lazy {
-        val gso = GoogleSignInOptions.Builder(
-            GoogleSignInOptions.DEFAULT_SIGN_IN
-        )
+        val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
             .requestEmail()
-            .requestIdToken(
-                // ✅ MUST be WEB CLIENT ID from Firebase
-                "29905288838-r78elj83hglalullips44dsuq9p8ton8.apps.googleusercontent.com"
-            )
+            .requestIdToken("29905288838-r78elj83hglalullips44dsuq9p8ton8.apps.googleusercontent.com")
             .build()
-
         GoogleSignIn.getClient(activity, gso)
     }
 
-    private val launcher =
-        activity.registerForActivityResult(
-            ActivityResultContracts.StartActivityForResult()
-        ) { result ->
-
-            if (result.resultCode != Activity.RESULT_OK) {
-                Log.e("LOGIN_TEST", "Google Sign-In canceled")
-                onResult(false)
-                return@registerForActivityResult
-            }
-
+    private val launcher = activity.registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
             val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
-
             try {
                 val account = task.getResult(ApiException::class.java)
+                val credential = GoogleAuthProvider.getCredential(account.idToken, null)
 
-                val credential = GoogleAuthProvider.getCredential(
-                    account.idToken,
-                    null
-                )
-
-                firebaseAuth
-                    .signInWithCredential(credential)
-                    .addOnSuccessListener {
-
-                        // 🔥 THIS LOG CONFIRMS FIREBASE LOGIN SUCCESS
-                        Log.d("LOGIN_TEST", "Firebase login success")
-
-                        val user = firebaseAuth.currentUser
-
-                        CoroutineScope(Dispatchers.Main).launch {
-                            MailSender.sendLoginMail(
-                                userName = user?.displayName ?: "Unknown User",
-                                userEmail = user?.email ?: "No Email",
-                                userUid = user?.uid ?: "No UID",
-                                provider = "Google",
-                                packageName = activity.packageName
-                            )
-                        }
-
-                        onResult(true)
+                firebaseAuth.signInWithCredential(credential).addOnSuccessListener {
+                    // 🔥 LOG THE ID AGAIN ON LOGIN SUCCESS
+                    FirebaseMessaging.getInstance().token.addOnSuccessListener { token ->
+                        Log.d("FCM_ID_LOG", "REGISTRATION_TOKEN: $token")
                     }
-                    .addOnFailureListener { e ->
-                        Log.e("LOGIN_TEST", "Firebase login failed", e)
-                        onResult(false)
-                    }
-
-            } catch (e: ApiException) {
-                Log.e("LOGIN_TEST", "Google sign-in failed", e)
-                onResult(false)
-            }
-        }
+                    onResult(true)
+                }
+            } catch (e: Exception) { onResult(false) }
+        } else { onResult(false) }
+    }
 
     fun signIn() {
+        // 🔥 FORCE LOG TOKEN ON SIGN IN CLICK
+        FirebaseMessaging.getInstance().token.addOnSuccessListener { token ->
+            Log.d("FCM_ID_LOG", "REGISTRATION_TOKEN: $token")
+        }
         launcher.launch(googleSignInClient.signInIntent)
     }
 
