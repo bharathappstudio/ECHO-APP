@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.compose.BackHandler // Added for Android 16 fix
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
@@ -37,7 +38,6 @@ import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import android.graphics.Color as SysColor
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
 
@@ -83,13 +83,15 @@ class MainActivity : ComponentActivity() {
         setContent {
             MaterialTheme {
                 BlackLoginUI(
-                    googleAuthClient = googleAuthClient,
                     loading = isLoading.value,
                     error = errorMessage.value,
                     onLoginClick = {
                         isLoading.value = true
                         errorMessage.value = ""
                         googleAuthClient.signIn()
+                    },
+                    onBackWhileLoading = {
+                        isLoading.value = false // Fix for predictive back behavior
                     }
                 )
             }
@@ -107,12 +109,17 @@ class MainActivity : ComponentActivity() {
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun BlackLoginUI(
-    googleAuthClient: GoogleAuthClient,
     loading: Boolean,
     error: String,
-    onLoginClick: () -> Unit
+    onLoginClick: () -> Unit,
+    onBackWhileLoading: () -> Unit // New callback for back gesture logic
 ) {
-    // --- 2-COLOR GRADIENT ANIMATION LOGIC ---
+    // --- ANDROID 16 PREDICTIVE BACK FIX ---
+    // If loading, the back gesture cancels loading instead of closing app instantly
+    BackHandler(enabled = loading) {
+        onBackWhileLoading()
+    }
+
     var isProfileLoading by remember { mutableStateOf(true) }
     val googleColors = listOf(
         Color(0xFF7E57C2), Color(0xFFEF5350), Color(0xFFFFEE58),
@@ -182,7 +189,6 @@ fun BlackLoginUI(
                         modifier = Modifier.fillMaxWidth().height(56.dp),
                         contentAlignment = Alignment.Center
                     ) {
-                        // ✅ FIXED: LoadingIndicator now uses 2-color gradient
                         LoadingIndicator(
                             modifier = Modifier
                                 .size(50.dp)

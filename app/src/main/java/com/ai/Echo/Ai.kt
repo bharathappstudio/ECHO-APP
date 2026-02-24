@@ -445,7 +445,7 @@ fun ChatApp() {
     val model = remember {
         GenerativeModel(
             modelName = "gemini-2.5-flash-lite",
-            apiKey = "AIzaSyBSPihEXZSU-v1YRxagg8UAd23Dy4ux_LY"
+            apiKey = "AIzaSyAzJvLHVxjzxDvvthUrXKhKNiMvppw0kXw"
         )
     }
 
