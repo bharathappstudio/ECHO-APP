@@ -441,20 +441,42 @@ fun EchoTopBar() {
 // ======================================================
 @Composable
 fun ChatApp() {
+    val apiKeys = listOf(
+        "AIzaSyCynOWAPefNi1pVu5bw0Bx0asfN6M36Llo",
+        "AIzaSyCkqn741k5kuNnTPm8OhY5xCNDllXqnhIs",
+        "AIzaSyCBZ_IpRg79G7gwZeRazTimeZkkNKt_hSg",
+        "AIzaSyDa7Nc_eW05HOw3YUE9eL4iaxTsxeznNjc",
+        "AIzaSyDLRBECZnrkRoWXZRlhpVyO58Aon0HRunQ",
+        "AIzaSyAVXcmDWX1BdsKYN7qYEKwwZZ9YP5-lNIg"
+    )
 
-    val model = remember {
+    // Keep track of which key index we are using
+    var keyIndex by remember { mutableIntStateOf(0) }
+
+    // Timer logic: Changes the key every 60,000ms (1 minute)
+    LaunchedEffect(Unit) {
+        while (true) {
+            delay(60000) // Wait 1 minute
+            keyIndex = (keyIndex + 1) % apiKeys.size // Move to next key, loop back to 0 at the end
+        }
+    }
+
+    val selectedKey = apiKeys[keyIndex]
+
+    // Re-create the model whenever the selectedKey changes
+    val model = remember(selectedKey) {
         GenerativeModel(
             modelName = "gemini-2.5-flash-lite",
-            apiKey = "AIzaSyAzJvLHVxjzxDvvthUrXKhKNiMvppw0kXw"
+            apiKey = selectedKey
         )
     }
 
     Box(Modifier.fillMaxSize()) {
         Background()
-        // ✅ FIXED: Use navigationBarsPadding to prevent 3-button overlap
         Column(Modifier.fillMaxSize()) {
             EchoTopBar()
             Box(Modifier.weight(1f)) {
+                // ChatScreen will now receive the updated model every minute
                 ChatScreen(model)
             }
         }
