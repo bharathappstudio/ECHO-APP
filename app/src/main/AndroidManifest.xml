@@ -8,6 +8,7 @@
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
 
     <application
         android:allowBackup="true"
@@ -18,6 +19,16 @@
         android:theme="@android:style/Theme.DeviceDefault.Light.NoActionBar"
         android:enableOnBackInvokedCallback="true"
         tools:targetApi="35">
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="com.ai.Echo.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
 
         <service
             android:name=".MyFirebaseMessagingService"
@@ -36,35 +47,13 @@
             </intent-filter>
         </activity>
 
-        <activity
-            android:name=".Ai"
-            android:exported="false"
-            android:windowSoftInputMode="adjustResize" />
-
-        <activity
-            android:name=".Setting"
-            android:exported="false" />
-
-        <activity
-            android:name=".DataControlsActivity"
-            android:exported="false" />
-
-        <activity
-            android:name=".PermissionsActivity"
-            android:exported="false" />
-
-        <activity
-            android:name=".EchoWeb"
-            android:exported="false" />
-
-        <activity
-            android:name=".DataBackupScreen"
-            android:exported="false" />
-
-        <activity
-            android:name=".EchoActivity"
-            android:exported="false" />
+        <activity android:name=".Ai" android:exported="false" android:windowSoftInputMode="adjustResize" />
+        <activity android:name=".Setting" android:exported="false" />
+        <activity android:name=".DataControlsActivity" android:exported="false" />
+        <activity android:name=".PermissionsActivity" android:exported="false" />
+        <activity android:name=".EchoWeb" android:exported="false" />
+        <activity android:name=".DataBackupScreen" android:exported="false" />
+        <activity android:name=".EchoActivity" android:exported="false" />
 
     </application>
-
 </manifest>
