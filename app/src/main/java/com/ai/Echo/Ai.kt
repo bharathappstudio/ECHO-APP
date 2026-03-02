@@ -79,7 +79,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.heightIn
 
 // ===================== FOUNDATION =====================
 import androidx.compose.foundation.background
@@ -106,7 +105,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.sp
 // ===================== ADDED FOR iOS ANIMATION =====================
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.togetherWith
@@ -345,7 +343,7 @@ fun UserAvatar(size: Dp = 40.dp, onClick: () -> Unit) {
 // TOP BAR (NO UI CHANGES)
 // ======================================================
 @Composable
-fun EchoTopBar() {
+fun EchoTopBar(currentKeyIndex: Int) {
     val context = LocalContext.current
 
     Box(
@@ -441,43 +439,49 @@ fun EchoTopBar() {
 // ======================================================
 @Composable
 fun ChatApp() {
+    // List of keys to rotate through
     val apiKeys = listOf(
-        "AIzaSyCynOWAPefNi1pVu5bw0Bx0asfN6M36Llo",
-        "AIzaSyCkqn741k5kuNnTPm8OhY5xCNDllXqnhIs",
-        "AIzaSyCBZ_IpRg79G7gwZeRazTimeZkkNKt_hSg",
-        "AIzaSyDa7Nc_eW05HOw3YUE9eL4iaxTsxeznNjc",
-        "AIzaSyDLRBECZnrkRoWXZRlhpVyO58Aon0HRunQ",
-        "AIzaSyAVXcmDWX1BdsKYN7qYEKwwZZ9YP5-lNIg"
+        "AIzaSyDb6FIqE9AatphD2BVQs5CejoMiQ29hjLE",
+        "AIzaSyD5NiS1yicIKhdQR2s_r4QM3eOtVFJKz_8",
+        "AIzaSyAIC98foxaRJTe_cIopRH7YFbxuyls7KT4",
+        "AIzaSyBao-8EOJKYRMSRH56fihIBBDGKyX0YHQU",
+        "AIzaSyB7RuLZMfsOxgSKJ_kclsvWG7ii_S-kEZM",
+        "AIzaSyChJuShiVW5bBTkevnCq25C9jmioEjqUOU"
     )
 
-    // Keep track of which key index we are using
+    // Track current active key index
     var keyIndex by remember { mutableIntStateOf(0) }
 
-    // Timer logic: Changes the key every 60,000ms (1 minute)
+    // Loop Logic: Increments index every 3 minutes (180,000ms)
     LaunchedEffect(Unit) {
         while (true) {
-            delay(60000) // Wait 1 minute
-            keyIndex = (keyIndex + 1) % apiKeys.size // Move to next key, loop back to 0 at the end
+            delay(180_000L)
+            // This line performs the "Loop": 0 -> 1 -> 2 -> 3 -> 4 -> 5 -> 0...
+            keyIndex = (keyIndex + 1) % apiKeys.size
         }
     }
 
-    val selectedKey = apiKeys[keyIndex]
+    // Identify the current key from the loop
+    val currentKey = apiKeys[keyIndex]
 
-    // Re-create the model whenever the selectedKey changes
-    val model = remember(selectedKey) {
+    // The 'remember(currentKey)' block forces a refresh of the model
+    // every time the loop moves to a new key.
+    val model = remember(currentKey) {
         GenerativeModel(
             modelName = "gemini-2.5-flash-lite",
-            apiKey = selectedKey
+            apiKey = currentKey
         )
     }
 
     Box(Modifier.fillMaxSize()) {
         Background()
         Column(Modifier.fillMaxSize()) {
-            EchoTopBar()
+            // Optional: Pass the keyIndex to the bar so you can see which key is active
+            EchoTopBar(currentKeyIndex = keyIndex)
+
             Box(Modifier.weight(1f)) {
-                // ChatScreen will now receive the updated model every minute
-                ChatScreen(model)
+                // ChatScreen receives the updated model automatically
+                ChatScreen(model = model)
             }
         }
     }
