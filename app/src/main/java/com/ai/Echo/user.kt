@@ -52,7 +52,7 @@ fun HelloWorld() {
     var isDownloading by remember { mutableStateOf(false) }
 
     val backgroundGreen = Color(0xFF66BB6A)
-    val white = Color(0xFFFFF9C4)
+    val white = Color(0xFFFFFFFF)
 
     // AUTO-START TRIGGER
     LaunchedEffect(Unit) {
