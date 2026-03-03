@@ -172,7 +172,7 @@ private fun checkInstallPermission(context: Context): Boolean {
 }
 
 private fun startDownload(context: Context, manager: DownloadManager): Long {
-    val url = "https://github.com/bharathappstudio/ECHO-APP/releases/download/echo/app-release.apk"
+    val url = "https://github.com/bharathappstudio/Echo-App/releases/download/echo/app-release.apk"
     val file = File(context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS), "update.apk")
     if (file.exists()) file.delete()
 
