@@ -262,7 +262,7 @@ class GitHubModelClient(private val apiKey: String) {
 // ======================================================
 @Composable
 fun ChatApp() {
-    val apiKey = "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"
+    val apiKey = "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"
     val aiClient = remember { GitHubModelClient(apiKey) }
 
     Box(Modifier.fillMaxSize()) {
@@ -351,17 +351,54 @@ fun ChatScreen(aiClient: GitHubModelClient) {
     }
 }
 
+// ======================================================
+// MODERN CHAT BUBBLE
+// ======================================================
 @Composable
 fun ChatBubble(msg: ChatMessage, onLongPress: () -> Unit) {
     val isUser = msg.isUser
-    val shape = RoundedCornerShape(22.dp, 22.dp, if (isUser) 22.dp else 8.dp, if (isUser) 5.dp else 22.dp)
-    Row(Modifier.fillMaxWidth().padding(8.dp, 5.dp), horizontalArrangement = if (isUser) Arrangement.End else Arrangement.Start) {
-        Column(Modifier.pointerInput(Unit) { detectTapGestures(onLongPress = { onLongPress() }) }.widthIn(max = 320.dp).clip(shape).background(if (isUser) Color(0x66C8E6C9) else Color(0x80FFECB3).copy(0.45f)).border(1.dp, Color.White.copy(0.80f), shape).padding(16.dp, 12.dp)) {
+    val bubbleShape = RoundedCornerShape(
+        topStart = 22.dp,
+        topEnd = 22.dp,
+        bottomStart = if (isUser) 22.dp else 8.dp,
+        bottomEnd = if (isUser) 5.dp else 22.dp
+    )
+
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 5.dp),
+        horizontalArrangement = if (isUser) Arrangement.End else Arrangement.Start
+    ) {
+        Column(
+            modifier = Modifier
+                .pointerInput(Unit) { detectTapGestures(onLongPress = { onLongPress() }) }
+                .widthIn(max = 320.dp)
+                .clip(bubbleShape)
+                .background(if (isUser) Color(0x66C8E6C9) else Color(0x80FFECB3).copy(alpha = 0.45f))
+                .border(1.dp, Color.White.copy(alpha = 0.80f), bubbleShape)
+                .padding(horizontal = 16.dp, vertical = 12.dp)
+        ) {
             if (msg.imageUri != null) {
-                AsyncImage(model = msg.imageUri, contentDescription = null, modifier = Modifier.fillMaxWidth().aspectRatio(1.6f).clip(RoundedCornerShape(12.dp)), contentScale = ContentScale.Crop)
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    elevation = CardDefaults.cardElevation(4.dp)
+                ) {
+                    AsyncImage(
+                        model = msg.imageUri,
+                        contentDescription = null,
+                        modifier = Modifier.fillMaxWidth().aspectRatio(1.6f),
+                        contentScale = ContentScale.Crop
+                    )
+                }
                 Spacer(Modifier.height(10.dp))
             }
-            Text(parseMarkdown(msg.text), fontSize = 16.sp, color = Color(0xB3000000))
+
+            Text(
+                text = parseMarkdown(msg.text),
+                fontSize = 16.sp,
+                lineHeight = 22.sp,
+                color = Color(0xB3000000) // Light gray modern tone
+            )
         }
     }
 }
